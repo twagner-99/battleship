@@ -20,8 +20,8 @@ const fleet = {
     'carrier': new Ship(5),
     'battleship': new Ship(4),
     'destroyer': new Ship(3),
-    'submarine': new Ship(2),
-    'patrolBoat': new Ship(1),
+    'submarine': new Ship(3),
+    'patrolBoat': new Ship(2),
 }
 
 export { fleet };

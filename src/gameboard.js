@@ -19,88 +19,46 @@ class Gameboard {
         // East - Bow is at right, rest follows left
         // West - Bow is at left, rest follows right
         
-        if (bowXCoordinate > 9 || bowYCoordinate > 9) throw new Error('Coordinates are outside gameboard range.');
+        if (bowXCoordinate > 9 || bowXCoordinate < 0 || bowYCoordinate > 9 || bowYCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
         
         const coordinatesArr = [{'x': bowXCoordinate, 'y': bowYCoordinate}];
-        const nextYCoordinate = bowYCoordinate;
-        const nextXCoordinate = bowXCoordinate;
+        let nextYCoordinate = bowYCoordinate;
+        let nextXCoordinate = bowXCoordinate;
 
         switch (orientation) {
-            case north:
-                for (let i = 1; i < ship.length; i++) {
-                    nextYCoordinate += 1;
-                    if (nextYCoordinate > 9) {
-                        console.log('Coordinates are outside gameboard range.');
-                        return;
-                    }
-                    coordinatesArr.push({'x': bowXCoordinate, 'y': nextYCoordinate})
+            case 'north':
+                for (let i = 1; i < ship.shipLength; i++) {
+                    nextYCoordinate++;
+                    if (nextYCoordinate > 9) throw new Error('Coordinates are outside gameboard range.');
+                    coordinatesArr.push({'x': bowXCoordinate, 'y': nextYCoordinate});
                 }
                 break;
 
-            case south:
-                for (let i = 1; i < ship.length; i++) {
-                    nextYCoordinate -= 1;
-                    if (nextYCoordinate > 9) {
-                        console.log('Coordinates are outside gameboard range.');
-                        return;
-                    }
-                    coordinatesArr.push({'x': bowXCoordinate, 'y': nextYCoordinate})
+            case 'south':
+                for (let i = 1; i < ship.shipLength; i++) {
+                    nextYCoordinate--;
+                    if (nextYCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
+                    coordinatesArr.push({'x': bowXCoordinate, 'y': nextYCoordinate});
                 }
                 break;
 
-            case east:
-                for (let i = 1; i < ship.length; i++) {
-                    nextXCoordinate -= 1;
-                    if (nextXCoordinate > 9) {
-                        console.log('Coordinates are outside gameboard range.');
-                        return;
-                    }
-                    coordinatesArr.push({'x': nextXCoordinate, 'y': bowYCoordinate})
+            case 'east':
+                for (let i = 1; i < ship.shipLength; i++) {
+                    nextXCoordinate--;
+                    if (nextXCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
+                    coordinatesArr.push({'x': nextXCoordinate, 'y': bowYCoordinate});
                 }
                 break;
 
-            case west:
-                for (let i = 1; i < ship.length; i++) {
-                    nextXCoordinate += 1;
-                    if (nextXCoordinate > 9) {
-                        console.log('Coordinates are outside gameboard range.');
-                        return;
-                    }
-                    coordinatesArr.push({'x': nextXCoordinate, 'y': bowYCoordinate})
+            case 'west':
+                for (let i = 1; i < ship.shipLength; i++) {
+                    nextXCoordinate++;
+                    if (nextXCoordinate > 9) throw new Error('Coordinates are outside gameboard range.');
+                    coordinatesArr.push({'x': nextXCoordinate, 'y': bowYCoordinate});
                 }
                 break;
         }
         ship.coordinates = coordinatesArr;
-
-        // if (orientation === 'north') {
-        //     for (let i = 1; i < ship.length; i++) {
-        //         nextYCoordinate += 1;
-        //         coordinatesArr.push({'x': bowXCoordinate, 'y': nextYCoordinate})
-        //     }
-        // }
-
-        // else if (orientation === 'south') {
-        //     for (let i = 1; i < ship.length; i++) {
-        //         nextYCoordinate -= 1;
-        //         coordinatesArr.push({'x': bowXCoordinate, 'y': nextYCoordinate})
-        //     }
-        // }
-
-        // else if (orientation === 'east') {
-        //     for (let i = 1; i < ship.length; i++) {
-        //         nextXCoordinate -= 1;
-        //         coordinatesArr.push({'x': nextXCoordinate, 'y': bowYCoordinate})
-        //     }
-        // }
-
-        // else if (orientation === 'west') {
-        //     for (let i = 1; i < ship.length; i++) {
-        //         nextXCoordinate += 1;
-        //         coordinatesArr.push({'x': nextXCoordinate, 'y': bowYCoordinate})
-        //     }
-        // }
-        // ship.coordinates = coordinatesArr;
-
     }
 
     receiveAttack(coordinates) {
@@ -111,3 +69,8 @@ class Gameboard {
 
 const gameboard = new Gameboard();
 export { gameboard };
+
+const stats = { score: 0 };
+stats.score++; 
+// This is allowed because 'stats' is still
+// pointing to the same object
