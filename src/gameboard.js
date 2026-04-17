@@ -1,16 +1,16 @@
 class Gameboard {
     constructor() {
         // Could be a good candidate for a set b/c we can't have duplicates
-        this.hitTracker = [];   // Will track if a spot has already been hit
-        this.board = [];    // Is an actual board needed? We can just make it that no coordinates are allowed > 9
+        this.hitTracker = new Set();   // Will track if a spot has already been hit. Using a set bc it doesn't allow duplicates.
+        // this.board = [];    // Is an actual board needed? We can just make it that no coordinates are allowed > 9
 
-        const rowsAndColumnsCount = 10;
-        for (let i = 0; i < rowsAndColumnsCount; i++) {
-            this.board[i] = [];
-            for (let j = 0; j < rowsAndColumnsCount; j++) {
-                this.board[i].push('O');
-            }
-        }
+        // const rowsAndColumnsCount = 10;
+        // for (let i = 0; i < rowsAndColumnsCount; i++) {
+        //     this.board[i] = [];
+        //     for (let j = 0; j < rowsAndColumnsCount; j++) {
+        //         this.board[i].push('O');
+        //     }
+        // }
     }
 
     placeShip(ship, bowXCoordinate, bowYCoordinate, orientation) {
@@ -21,8 +21,8 @@ class Gameboard {
         
         if (bowXCoordinate > 9 || bowXCoordinate < 0 || bowYCoordinate > 9 || bowYCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
         
-        const coordinatesArr = [{'x': bowXCoordinate, 'y': bowYCoordinate}];
-        let nextYCoordinate = bowYCoordinate;
+        const coordinatesArr = [`${bowXCoordinate},${bowYCoordinate}`];
+        let nextYCoordinate = bowYCoordinate;   // These aren't technically necessary. We could just increment the bow coordinates within the for loop. But then it's a bit unclear because they'd no longer be the coordinates of the bow.
         let nextXCoordinate = bowXCoordinate;
 
         switch (orientation) {
@@ -30,7 +30,7 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextYCoordinate++;
                     if (nextYCoordinate > 9) throw new Error('Coordinates are outside gameboard range.');
-                    coordinatesArr.push({'x': bowXCoordinate, 'y': nextYCoordinate});
+                    coordinatesArr.push(`${bowXCoordinate},${nextYCoordinate}`);
                 }
                 break;
 
@@ -38,7 +38,7 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextYCoordinate--;
                     if (nextYCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
-                    coordinatesArr.push({'x': bowXCoordinate, 'y': nextYCoordinate});
+                    coordinatesArr.push(`${bowXCoordinate},${nextYCoordinate}`);
                 }
                 break;
 
@@ -46,7 +46,7 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextXCoordinate--;
                     if (nextXCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
-                    coordinatesArr.push({'x': nextXCoordinate, 'y': bowYCoordinate});
+                    coordinatesArr.push(`${nextXCoordinate},${bowYCoordinate}`);
                 }
                 break;
 
@@ -54,23 +54,20 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextXCoordinate++;
                     if (nextXCoordinate > 9) throw new Error('Coordinates are outside gameboard range.');
-                    coordinatesArr.push({'x': nextXCoordinate, 'y': bowYCoordinate});
+                    coordinatesArr.push(`${nextXCoordinate},${bowYCoordinate}`);
                 }
                 break;
         }
         ship.coordinates = coordinatesArr;
     }
 
-    receiveAttack(coordinates) {
+    receiveAttack(xCoordinate, yCoordinate) {
         // Include hits, misses, and if all ship sunk
-   
+        // Check if hitTracker Set already has the coordinates and throw Error
+        // Check if any of the ships coordinate sets have the new hit coordinates obj
+        this.hitTracker.add(`${xCoordinate},${yCoordinate}`);
     }
 }
 
 const gameboard = new Gameboard();
 export { gameboard };
-
-const stats = { score: 0 };
-stats.score++; 
-// This is allowed because 'stats' is still
-// pointing to the same object
