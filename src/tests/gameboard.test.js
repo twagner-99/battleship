@@ -39,23 +39,28 @@ test('throws an error if calculated coordinates are out of range of gameboard si
 
 test('places ship with orientation of north', () => {
     gameboard.placeShip(fleet.patrolBoat, 0, 0, 'north');
-    expect(fleet.patrolBoat.coordinates).toStrictEqual(['0,0', '0,1']);
+    let coordinateSet = fleet.patrolBoat.coordinates;
+    expect([...coordinateSet]).toStrictEqual(['0,0', '0,1']);
 
     gameboard.placeShip(fleet.destroyer, 2, 3, 'north');
-    expect(fleet.destroyer.coordinates).toStrictEqual(['2,3', '2,4', '2,5']);
+    coordinateSet = fleet.destroyer.coordinates;
+    expect([...coordinateSet]).toStrictEqual(['2,3', '2,4', '2,5']);
 })
 
 test('places ship with orientation of south', () => {
     gameboard.placeShip(fleet.patrolBoat, 9, 9, 'south');
-    expect(fleet.patrolBoat.coordinates).toStrictEqual(['9,9', '9,8']);
+    let coordinateSet = fleet.patrolBoat.coordinates;
+    expect([...coordinateSet]).toStrictEqual(['9,9', '9,8']);
 })
 
 test('places ship with orientation of east', () => {
     gameboard.placeShip(fleet.patrolBoat, 8, 2, 'east');
-    expect(fleet.patrolBoat.coordinates).toStrictEqual(['8,2', '7,2']);
+    let coordinateSet = fleet.patrolBoat.coordinates;
+    expect([...coordinateSet]).toStrictEqual(['8,2', '7,2']);
 })
 
 test('places ship with orientation of west', () => {
     gameboard.placeShip(fleet.patrolBoat, 4, 7, 'west');
-    expect(fleet.patrolBoat.coordinates).toStrictEqual(['4,7', '5,7']);
+    let coordinateSet = fleet.patrolBoat.coordinates;
+    expect([...coordinateSet]).toStrictEqual(['4,7', '5,7']);
 })

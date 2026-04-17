@@ -3,7 +3,7 @@ class Ship {
         this.shipLength = shipLength;
         this.hitCount = hitCount;
         this.sunkStatus = sunkStatus;
-        this.coordinates = new Set(); // Using a set for easy comparison to hit gameboard tiles.
+        this.coordinates; // Using a set for easy comparison to hit gameboard tiles.
     }
 
     hit() {

@@ -21,7 +21,8 @@ class Gameboard {
         
         if (bowXCoordinate > 9 || bowXCoordinate < 0 || bowYCoordinate > 9 || bowYCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
         
-        const coordinatesArr = [`${bowXCoordinate},${bowYCoordinate}`];
+        const coordinatesSet = new Set();   // Doing this here instead of initializing set in Ship class constructor so that "ship.coordinates = coordinatesSet;" line keep things clean. It's overriding so we don't just always have ship.coordinates be the same reference everytime in our Jest test because it causes it to fail because everytime we place the same ship one after another it's just making a longer and longer (and wrong) set
+        coordinatesSet.add(`${bowXCoordinate},${bowYCoordinate}`);
         let nextYCoordinate = bowYCoordinate;   // These aren't technically necessary. We could just increment the bow coordinates within the for loop. But then it's a bit unclear because they'd no longer be the coordinates of the bow.
         let nextXCoordinate = bowXCoordinate;
 
@@ -30,7 +31,7 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextYCoordinate++;
                     if (nextYCoordinate > 9) throw new Error('Coordinates are outside gameboard range.');
-                    coordinatesArr.push(`${bowXCoordinate},${nextYCoordinate}`);
+                    coordinatesSet.add(`${bowXCoordinate},${nextYCoordinate}`);
                 }
                 break;
 
@@ -38,7 +39,7 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextYCoordinate--;
                     if (nextYCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
-                    coordinatesArr.push(`${bowXCoordinate},${nextYCoordinate}`);
+                    coordinatesSet.add(`${bowXCoordinate},${nextYCoordinate}`);
                 }
                 break;
 
@@ -46,7 +47,7 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextXCoordinate--;
                     if (nextXCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
-                    coordinatesArr.push(`${nextXCoordinate},${bowYCoordinate}`);
+                    coordinatesSet.add(`${nextXCoordinate},${bowYCoordinate}`);
                 }
                 break;
 
@@ -54,11 +55,11 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextXCoordinate++;
                     if (nextXCoordinate > 9) throw new Error('Coordinates are outside gameboard range.');
-                    coordinatesArr.push(`${nextXCoordinate},${bowYCoordinate}`);
+                    coordinatesSet.add(`${nextXCoordinate},${bowYCoordinate}`);
                 }
                 break;
         }
-        ship.coordinates = coordinatesArr;
+        ship.coordinates = coordinatesSet;
     }
 
     receiveAttack(xCoordinate, yCoordinate) {
