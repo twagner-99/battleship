@@ -1,66 +1,137 @@
 import { gameboard } from "../gameboard";
-import { fleet } from "../ship.js";
+// import { fleet } from "../ship.js";
 
 test('throws an error if bow coordinates are out of range of gameboard size', () => {
+    const fleetMock = {
+        'carrier': {
+            "shipLength": 5,
+            "coordinates": new Set(),
+        }
+    }
+
     expect(() => {
-        gameboard.placeShip(fleet.carrier, 10, 0, 'north');
+        gameboard.placeShip(fleetMock.carrier, 10, 0, 'north');
     }).toThrow('Coordinates are outside gameboard range.');
 
     expect(() => {
-        gameboard.placeShip(fleet.carrier, 0, 10, 'north');
+        gameboard.placeShip(fleetMock.carrier, 0, 10, 'north');
     }).toThrow('Coordinates are outside gameboard range.');
 
     expect(() => {
-        gameboard.placeShip(fleet.carrier, -1, 0, 'north');
+        gameboard.placeShip(fleetMock.carrier, -1, 0, 'north');
     }).toThrow('Coordinates are outside gameboard range.');
 
     expect(() => {
-        gameboard.placeShip(fleet.carrier, 0, -1, 'north');
+        gameboard.placeShip(fleetMock.carrier, 0, -1, 'north');
     }).toThrow('Coordinates are outside gameboard range.');
 })
 
 test('throws an error if calculated coordinates are out of range of gameboard size', () => {
+    const fleetMock = {
+        'carrier': {
+            "shipLength": 5,
+            "coordinates": new Set(),
+        }
+    }
+    
     expect(() => {
-        gameboard.placeShip(fleet.carrier, 9, 9, 'north');
+        gameboard.placeShip(fleetMock.carrier, 9, 9, 'north');
     }).toThrow('Coordinates are outside gameboard range.');
 
     expect(() => {
-        gameboard.placeShip(fleet.carrier, 0, 0, 'south');
+        gameboard.placeShip(fleetMock.carrier, 0, 0, 'south');
     }).toThrow('Coordinates are outside gameboard range.');
 
     expect(() => {
-        gameboard.placeShip(fleet.carrier, 1, 7, 'east');
+        gameboard.placeShip(fleetMock.carrier, 1, 7, 'east');
     }).toThrow('Coordinates are outside gameboard range.');
 
     expect(() => {
-        gameboard.placeShip(fleet.carrier, 8, 2, 'west');
+        gameboard.placeShip(fleetMock.carrier, 8, 2, 'west');
     }).toThrow('Coordinates are outside gameboard range.');
 })
 
 test('places ship with orientation of north', () => {
-    gameboard.placeShip(fleet.patrolBoat, 0, 0, 'north');
-    let coordinateSet = fleet.patrolBoat.coordinates;
+    const fleetMock = {
+        'patrolBoat': {
+            "shipLength": 2,
+            "coordinates": new Set(),
+        },
+        'destroyer': {
+            "shipLength": 3,
+            "coordinates": new Set(),
+        }
+    }
+    
+    gameboard.placeShip(fleetMock.patrolBoat, 0, 0, 'north');
+    let coordinateSet = fleetMock.patrolBoat.coordinates;
     expect([...coordinateSet]).toStrictEqual(['0,0', '0,1']);
 
-    gameboard.placeShip(fleet.destroyer, 2, 3, 'north');
-    coordinateSet = fleet.destroyer.coordinates;
+    gameboard.placeShip(fleetMock.destroyer, 2, 3, 'north');
+    coordinateSet = fleetMock.destroyer.coordinates;
     expect([...coordinateSet]).toStrictEqual(['2,3', '2,4', '2,5']);
 })
 
 test('places ship with orientation of south', () => {
-    gameboard.placeShip(fleet.patrolBoat, 9, 9, 'south');
-    let coordinateSet = fleet.patrolBoat.coordinates;
+    const fleetMock = {
+        'patrolBoat': {
+            "shipLength": 2,
+            "coordinates": new Set(),
+        }
+    }
+    
+    gameboard.placeShip(fleetMock.patrolBoat, 9, 9, 'south');
+    let coordinateSet = fleetMock.patrolBoat.coordinates;
     expect([...coordinateSet]).toStrictEqual(['9,9', '9,8']);
 })
 
 test('places ship with orientation of east', () => {
-    gameboard.placeShip(fleet.patrolBoat, 8, 2, 'east');
-    let coordinateSet = fleet.patrolBoat.coordinates;
+    const fleetMock = {
+        'patrolBoat': {
+            "shipLength": 2,
+            "coordinates": new Set(),
+        }
+    }
+
+    gameboard.placeShip(fleetMock.patrolBoat, 8, 2, 'east');
+    let coordinateSet = fleetMock.patrolBoat.coordinates;
     expect([...coordinateSet]).toStrictEqual(['8,2', '7,2']);
 })
 
 test('places ship with orientation of west', () => {
-    gameboard.placeShip(fleet.patrolBoat, 4, 7, 'west');
-    let coordinateSet = fleet.patrolBoat.coordinates;
+    const fleetMock = {
+        'patrolBoat': {
+            "shipLength": 2,
+            "coordinates": new Set(),
+        }
+    }
+    
+    gameboard.placeShip(fleetMock.patrolBoat, 4, 7, 'west');
+    let coordinateSet = fleetMock.patrolBoat.coordinates;
     expect([...coordinateSet]).toStrictEqual(['4,7', '5,7']);
 })
+
+// test('throws an Error if user tries to hit a previously hit tile', () => {
+//     gameboard.hitTracker = new Set();
+//     gameboard.hitTracker.add('8,2');
+//     expect(() => {
+//         gameboard.receiveAttack(8, 2);
+//     }).toThrow('Coordinate already hit. Try Again.');
+// })
+
+// test('if a ship has been hit, log message to user', () => {
+//     // Should I mock implement the output of placeShip?
+//     // Or even mock my fleet creation??
+
+//     const mockFleet = jest.fn().mockReturnValue(fleet);
+
+
+//     expect(gameboard.receiveAttack(8, 2))
+
+//     const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
+//     expect(spy).toHaveBeenCalledWith(`${fleet[ship]} has been hit!`)
+// })
+
+// test('if a ship has been sunk, log message to user')
+
+// test('if ship is missed, log message to user')

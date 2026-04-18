@@ -1,7 +1,8 @@
+import { fleet } from "./ship.js";
+
 class Gameboard {
     constructor() {
-        // Could be a good candidate for a set b/c we can't have duplicates
-        this.hitTracker = new Set();   // Will track if a spot has already been hit. Using a set bc it doesn't allow duplicates.
+        this.hitTracker = new Set();
         // this.board = [];    // Is an actual board needed? We can just make it that no coordinates are allowed > 9
 
         // const rowsAndColumnsCount = 10;
@@ -21,8 +22,7 @@ class Gameboard {
         
         if (bowXCoordinate > 9 || bowXCoordinate < 0 || bowYCoordinate > 9 || bowYCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
         
-        const coordinatesSet = new Set();   // Doing this here instead of initializing set in Ship class constructor so that "ship.coordinates = coordinatesSet;" line keep things clean. It's overriding so we don't just always have ship.coordinates be the same reference everytime in our Jest test because it causes it to fail because everytime we place the same ship one after another it's just making a longer and longer (and wrong) set
-        coordinatesSet.add(`${bowXCoordinate},${bowYCoordinate}`);
+        ship.coordinates.add(`${bowXCoordinate},${bowYCoordinate}`);
         let nextYCoordinate = bowYCoordinate;   // These aren't technically necessary. We could just increment the bow coordinates within the for loop. But then it's a bit unclear because they'd no longer be the coordinates of the bow.
         let nextXCoordinate = bowXCoordinate;
 
@@ -31,7 +31,7 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextYCoordinate++;
                     if (nextYCoordinate > 9) throw new Error('Coordinates are outside gameboard range.');
-                    coordinatesSet.add(`${bowXCoordinate},${nextYCoordinate}`);
+                    ship.coordinates.add(`${bowXCoordinate},${nextYCoordinate}`);
                 }
                 break;
 
@@ -39,7 +39,7 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextYCoordinate--;
                     if (nextYCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
-                    coordinatesSet.add(`${bowXCoordinate},${nextYCoordinate}`);
+                    ship.coordinates.add(`${bowXCoordinate},${nextYCoordinate}`);
                 }
                 break;
 
@@ -47,7 +47,7 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextXCoordinate--;
                     if (nextXCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
-                    coordinatesSet.add(`${nextXCoordinate},${bowYCoordinate}`);
+                    ship.coordinates.add(`${nextXCoordinate},${bowYCoordinate}`);
                 }
                 break;
 
@@ -55,20 +55,49 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextXCoordinate++;
                     if (nextXCoordinate > 9) throw new Error('Coordinates are outside gameboard range.');
-                    coordinatesSet.add(`${nextXCoordinate},${bowYCoordinate}`);
+                    ship.coordinates.add(`${nextXCoordinate},${bowYCoordinate}`);
                 }
                 break;
         }
-        ship.coordinates = coordinatesSet;
     }
 
-    receiveAttack(xCoordinate, yCoordinate) {
-        // Include hits, misses, and if all ship sunk
-        // Check if hitTracker Set already has the coordinates and throw Error
-        // Check if any of the ships coordinate sets have the new hit coordinates obj
-        this.hitTracker.add(`${xCoordinate},${yCoordinate}`);
+    receiveAttack(xCoordinate, yCoordinate, fleetParam = fleet) {
+        const hitCoordinates = `${xCoordinate},${yCoordinate}`;
+        if (this.hitTracker.has(hitCoordinates)) throw new Error('Coordinate already hit. Try Again.');
+        this.hitTracker.add(hitCoordinates);
+
+        const hitData = this.#hitChecker(hitCoordinates);
+        this.#displayMessage(hitData);
+    }
+        
+    #hitChecker(hitCoordinates) {
+        const hitData = {
+            'shipHit': false,
+            'shipSunk': false,
+        }
+
+        for (let ship in fleet) {
+            if (fleet[ship].coordinates.has(hitCoordinates)) {
+                fleet[ship].hitCount++;
+                hitData.shipHit = true;
+
+                if (fleet[ship].hitCount === fleet[ship].length) {
+                    fleet[ship].hitStatus = true;
+                    hitData.shipSunk = true;
+                }
+            }
+            break;
+        }
+        return hitData;
+    }
+
+    #displayMessage(hitData) {
+        if (hitData.shipHit) console.log(`${fleet[ship]} has been hit!`);
+        if (hitData.shipSunk) console.log(`${fleet[ship]} has been sunk!`);
+        else console.log('You missed!');
     }
 }
 
 const gameboard = new Gameboard();
 export { gameboard };
+
