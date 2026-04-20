@@ -1,5 +1,9 @@
-import { gameboard } from "../gameboard";
-// import { fleet } from "../ship.js";
+import { Gameboard } from "../gameboard";
+
+let gameboard;
+beforeEach(() => {
+    gameboard = new Gameboard();
+})
 
 test('throws an error if bow coordinates are out of range of gameboard size', () => {
     const fleetMock = {
@@ -111,27 +115,67 @@ test('places ship with orientation of west', () => {
     expect([...coordinateSet]).toStrictEqual(['4,7', '5,7']);
 })
 
-// test('throws an Error if user tries to hit a previously hit tile', () => {
-//     gameboard.hitTracker = new Set();
-//     gameboard.hitTracker.add('8,2');
-//     expect(() => {
-//         gameboard.receiveAttack(8, 2);
-//     }).toThrow('Coordinate already hit. Try Again.');
-// })
+test('throws an Error if user tries to hit a previously hit tile', () => {
+    gameboard.hitTracker.add('8,2');
+    expect(() => {
+        gameboard.receiveAttack(8, 2);
+    }).toThrow('Coordinate already hit. Try Again.');
+})
 
-// test('if a ship has been hit, log message to user', () => {
-//     // Should I mock implement the output of placeShip?
-//     // Or even mock my fleet creation??
+test('if a ship has been hit, log message to user', () => {
+    const fleetMock = {
+        'patrolBoat': {
+            "shipLength": 2,
+            "coordinates": new Set(['0,0', '0,1']),
+        },
+        'destroyer': {
+            "shipLength": 3,
+            "coordinates": new Set(['2,3', '2,4', '2,5']),
+        }
+    }
 
-//     const mockFleet = jest.fn().mockReturnValue(fleet);
+    const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    gameboard.receiveAttack(2, 4, fleetMock);
 
+    expect(spy).toHaveBeenCalledWith(`destroyer has been hit!`);
+})
 
-//     expect(gameboard.receiveAttack(8, 2))
+test('if a ship has been sunk, log message to user', () => {
+    const fleetMock = {
+        'patrolBoat': {
+            "shipLength": 2,
+            "hitCount": 1,
+            "coordinates": new Set(['0,0', '0,1']),
+        },
+        'destroyer': {
+            "shipLength": 3,
+            "hitCount": 2,
+            "coordinates": new Set(['2,3', '2,4', '2,5']),
+        }
+    }
 
-//     const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
-//     expect(spy).toHaveBeenCalledWith(`${fleet[ship]} has been hit!`)
-// })
+    const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    gameboard.receiveAttack(2, 4, fleetMock);
 
-// test('if a ship has been sunk, log message to user')
+    expect(spy).toHaveBeenCalledWith(`destroyer has been sunk!`);
+})
 
-// test('if ship is missed, log message to user')
+test('if ship is missed, log message to user', () => {
+    const fleetMock = {
+        'patrolBoat': {
+            "shipLength": 2,
+            "hitCount": 1,
+            "coordinates": new Set(['0,0', '0,1']),
+        },
+        'destroyer': {
+            "shipLength": 3,
+            "hitCount": 2,
+            "coordinates": new Set(['2,3', '2,4', '2,5']),
+        }
+    }
+
+    const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    gameboard.receiveAttack(9, 4, fleetMock);
+
+    expect(spy).toHaveBeenCalledWith('You missed!');
+})

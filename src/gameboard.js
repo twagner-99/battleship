@@ -3,17 +3,9 @@ import { fleet } from "./ship.js";
 class Gameboard {
     constructor() {
         this.hitTracker = new Set();
-        // this.board = [];    // Is an actual board needed? We can just make it that no coordinates are allowed > 9
-
-        // const rowsAndColumnsCount = 10;
-        // for (let i = 0; i < rowsAndColumnsCount; i++) {
-        //     this.board[i] = [];
-        //     for (let j = 0; j < rowsAndColumnsCount; j++) {
-        //         this.board[i].push('O');
-        //     }
-        // }
     }
 
+    // Add an Error if an incorrect orientation is passed in?
     placeShip(ship, bowXCoordinate, bowYCoordinate, orientation) {
         // North - Bow is at top, rest follows downwards
         // South - Bow is at bottom, rest follows upwards
@@ -66,38 +58,43 @@ class Gameboard {
         if (this.hitTracker.has(hitCoordinates)) throw new Error('Coordinate already hit. Try Again.');
         this.hitTracker.add(hitCoordinates);
 
-        const hitData = this.#hitChecker(hitCoordinates);
+        const hitData = this.#hitChecker(hitCoordinates, fleetParam);
         this.#displayMessage(hitData);
     }
         
-    #hitChecker(hitCoordinates) {
+    #hitChecker(hitCoordinates, fleetParam) {
         const hitData = {
             'shipHit': false,
             'shipSunk': false,
+            'shipType': undefined,
         }
 
-        for (let ship in fleet) {
-            if (fleet[ship].coordinates.has(hitCoordinates)) {
-                fleet[ship].hitCount++;
+        for (let ship in fleetParam) {
+            if (fleetParam[ship].coordinates.has(hitCoordinates)) {
+                fleetParam[ship].hitCount++;
                 hitData.shipHit = true;
+                hitData.shipType = ship;
 
-                if (fleet[ship].hitCount === fleet[ship].length) {
-                    fleet[ship].hitStatus = true;
+                if (fleetParam[ship].hitCount === fleetParam[ship].shipLength) {
+                    fleetParam[ship].sunkStatus = true;
                     hitData.shipSunk = true;
                 }
             }
-            break;
+            if (hitData.shipHit) break; // So we don't get stuck in the for...in loop longer than we need to be
         }
         return hitData;
     }
 
     #displayMessage(hitData) {
-        if (hitData.shipHit) console.log(`${fleet[ship]} has been hit!`);
-        if (hitData.shipSunk) console.log(`${fleet[ship]} has been sunk!`);
-        else console.log('You missed!');
+        let message = 'You missed!';
+        if (hitData.shipSunk) message = `${hitData.shipType} has been sunk!`;
+        else if (hitData.shipHit) message = `${hitData.shipType} has been hit!`;
+        
+        console.log(message);
     }
 }
 
-const gameboard = new Gameboard();
-export { gameboard };
+// Will prob want to do this in the file that controls new games. Create a new gameboard for each game. Not here.
+// const gameboard = new Gameboard();  
+export { Gameboard };
 
