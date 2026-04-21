@@ -3,6 +3,7 @@ import { fleet } from "./ship.js";
 class Gameboard {
     constructor() {
         this.hitTracker = new Set();
+        this.numShipsSunk = 0;
     }
 
     // Add an Error if an incorrect orientation is passed in?
@@ -50,6 +51,8 @@ class Gameboard {
                     ship.coordinates.add(`${nextXCoordinate},${bowYCoordinate}`);
                 }
                 break;
+            default:
+                throw new Error('Orientation must be a cardinal direction (north, south, east, or west).');
         }
     }
 
@@ -59,7 +62,7 @@ class Gameboard {
         this.hitTracker.add(hitCoordinates);
 
         const hitData = this.#hitChecker(hitCoordinates, fleetParam);
-        this.#displayMessage(hitData);
+        this.#displayMessage(hitData, fleetParam);
     }
         
     #hitChecker(hitCoordinates, fleetParam) {
@@ -71,13 +74,13 @@ class Gameboard {
 
         for (let ship in fleetParam) {
             if (fleetParam[ship].coordinates.has(hitCoordinates)) {
-                fleetParam[ship].hitCount++;
+                fleetParam[ship].hit();
                 hitData.shipHit = true;
                 hitData.shipType = ship;
 
-                if (fleetParam[ship].hitCount === fleetParam[ship].shipLength) {
-                    fleetParam[ship].sunkStatus = true;
+                if (fleetParam[ship].isSunk()) {
                     hitData.shipSunk = true;
+                    this.numShipsSunk++;
                 }
             }
             if (hitData.shipHit) break; // So we don't get stuck in the for...in loop longer than we need to be
@@ -85,9 +88,10 @@ class Gameboard {
         return hitData;
     }
 
-    #displayMessage(hitData) {
+    #displayMessage(hitData, fleetParam = fleet) {
         let message = 'You missed!';
-        if (hitData.shipSunk) message = `${hitData.shipType} has been sunk!`;
+        if (this.numShipsSunk === Object.keys(fleetParam).length) message = `All ships have been sunk!`;
+        else if (hitData.shipSunk) message = `${hitData.shipType} has been sunk!`;
         else if (hitData.shipHit) message = `${hitData.shipType} has been hit!`;
         
         console.log(message);

@@ -7,15 +7,19 @@ class Ship {
     }
 
     hit() {
-        if (true) this.shipLength += 1; // Update if condition
+        this.hitCount++;
     }
 
     isSunk() {
-        if (this.hitCount === this.shipLength) return true;
+        if (this.hitCount === this.shipLength) {
+            this.sunkStatus = true;
+            return true;
+        }
         return false;
     }
 }
 
+// Will likely want to create this fleet in gameboard.js
 const fleet = {
     'carrier': new Ship(5),
     'battleship': new Ship(4),
@@ -24,4 +28,4 @@ const fleet = {
     'patrolBoat': new Ship(2),
 }
 
-export { fleet };
+export { Ship };
