@@ -20,12 +20,12 @@ class Ship {
 }
 
 // Will likely want to create this fleet in gameboard.js
-const fleet = {
-    'carrier': new Ship(5),
-    'battleship': new Ship(4),
-    'destroyer': new Ship(3),
-    'submarine': new Ship(3),
-    'patrolBoat': new Ship(2),
-}
+// const fleet = {
+//     'carrier': new Ship(5),
+//     'battleship': new Ship(4),
+//     'destroyer': new Ship(3),
+//     'submarine': new Ship(3),
+//     'patrolBoat': new Ship(2),
+// }
 
 export { Ship };

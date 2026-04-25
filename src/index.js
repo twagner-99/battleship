@@ -1,3 +1,8 @@
 import "./styles.css";
-import { fleet } from "./ship.js";
-import { gameboard } from "./gameboard.js";
+import { Ship } from "./ship.js";
+import { Gameboard } from "./gameboard.js";
+import { Players } from "./players.js"
+
+// createGameboardGridDivs(100);
+
+const playerGameboard = new Gameboard();

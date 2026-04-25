@@ -1,3 +1,32 @@
-div {
-    color: blueviolet;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+#wrapper {
+    padding: 8px;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.gameboard-wrapper {
+    border: 1px solid black;
+    display: grid;
+    place-content: center;
+}
+
+.gameboard {
+    height: 400px;
+    width: 400px;
+    box-sizing: content-box;
+    border: 0.5px solid black;
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+}
+
+.gameboard div {
+    border: 0.5px solid black;
 }

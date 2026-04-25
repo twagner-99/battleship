@@ -100,7 +100,7 @@ test('if a ship has been hit, log message to user', () => {
 
     const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
     gameboardMock.receiveAttack(2, 4, fleetMock);
-    expect(spy).toHaveBeenCalledWith(`destroyer has been hit!`);
+    expect(spy).toHaveBeenCalledWith(`Your destroyer has been hit!`);
 })
 
 test('if a ship has been sunk, log message to user', () => {
@@ -110,14 +110,14 @@ test('if a ship has been sunk, log message to user', () => {
 
     const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
     gameboardMock.receiveAttack(2, 4, fleetMock);
-    expect(spy).toHaveBeenCalledWith(`destroyer has been sunk!`);
+    expect(spy).toHaveBeenCalledWith(`Your destroyer has been sunk!`);
 })
 
 test('if ship is missed, log message to user', () => {
     gameboardMock.receiveAttack(9, 4, fleetMock);
     const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    expect(spy).toHaveBeenCalledWith('You missed!');
+    expect(spy).toHaveBeenCalledWith('Attack missed!');
 })
 
 test('if all ships are sunk, log message to user', () => {
@@ -129,5 +129,5 @@ test('if all ships are sunk, log message to user', () => {
     const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
     gameboardMock.receiveAttack(2, 4, fleetMock);
 
-    expect(spy).toHaveBeenCalledWith(`All ships have been sunk!`);
+    expect(spy).toHaveBeenCalledWith(`All your ships have been sunk!`);
 })

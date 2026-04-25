@@ -1,12 +1,11 @@
-import { fleet } from "./ship.js";
-
 class Gameboard {
     constructor() {
         this.hitTracker = new Set();
         this.numShipsSunk = 0;
+        this.createGameboardGridDivs();
     }
 
-    // Add an Error if an incorrect orientation is passed in?
+    // For player's own board
     placeShip(ship, bowXCoordinate, bowYCoordinate, orientation) {
         // North - Bow is at top, rest follows downwards
         // South - Bow is at bottom, rest follows upwards
@@ -56,8 +55,15 @@ class Gameboard {
         }
     }
 
+    // I'm allowed to know if they've hit my ship and if it's sunk
+    // I'm allowed to know if I've hit their ship and if it's sunk
+    // "Messages" will look different with a UI
+        // If I recieve an attack, I see all my ships and were the attack went
+        // If computer recieves an attack, I see where it went and if it hit/sunk a ship
     receiveAttack(xCoordinate, yCoordinate, fleetParam = fleet) {
         const hitCoordinates = `${xCoordinate},${yCoordinate}`;
+
+        // How should I reword this now that it's from the player's POV?
         if (this.hitTracker.has(hitCoordinates)) throw new Error('Coordinate already hit. Try Again.');
         this.hitTracker.add(hitCoordinates);
 
@@ -89,12 +95,23 @@ class Gameboard {
     }
 
     #displayMessage(hitData, fleetParam = fleet) {
-        let message = 'You missed!';
-        if (this.numShipsSunk === Object.keys(fleetParam).length) message = `All ships have been sunk!`;
-        else if (hitData.shipSunk) message = `${hitData.shipType} has been sunk!`;
-        else if (hitData.shipHit) message = `${hitData.shipType} has been hit!`;
+        let message = 'Attack missed!';
+        if (this.numShipsSunk === Object.keys(fleetParam).length) message = `All your ships have been sunk!`;
+        else if (hitData.shipSunk) message = ` Your ${hitData.shipType} has been sunk!`;
+        else if (hitData.shipHit) message = `Your ${hitData.shipType} has been hit!`;
         
         console.log(message);
+    }
+
+    createGameboardGridDivs(numGridSquares = 100) {
+        const gameboards = document.querySelectorAll('.gameboard');
+
+        for (let gameboard of gameboards) {
+            for (let i = 0; i < numGridSquares; i++) {
+                const gridSquare = document.createElement('div');
+                gameboard.appendChild(gridSquare);
+            }
+        }
     }
 }
 
