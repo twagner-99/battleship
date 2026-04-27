@@ -2,7 +2,6 @@ class Gameboard {
     constructor() {
         this.hitTracker = new Set();
         this.numShipsSunk = 0;
-        this.createGameboardGridDivs();
     }
 
     // For player's own board
@@ -102,20 +101,7 @@ class Gameboard {
         
         console.log(message);
     }
-
-    createGameboardGridDivs(numGridSquares = 100) {
-        const gameboards = document.querySelectorAll('.gameboard');
-
-        for (let gameboard of gameboards) {
-            for (let i = 0; i < numGridSquares; i++) {
-                const gridSquare = document.createElement('div');
-                gameboard.appendChild(gridSquare);
-            }
-        }
-    }
 }
 
-// Will prob want to do this in the file that controls new games. Create a new gameboard for each game. Not here.
-// const gameboard = new Gameboard();  
 export { Gameboard };
 

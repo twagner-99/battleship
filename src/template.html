@@ -6,17 +6,37 @@
     <title>Battleship</title>
 </head>
 <body>
+    <dialog id="new-game-dialog">
+        <button id="new-game-btn" type="button">New Game</button>
+    </dialog>
+
     <div id="wrapper">
         <div class="gameboard-wrapper">
             <div class="gameboard">
                   <!-- Empty divs created with JS -->
             </div>
+            <p id="player1-name-para"></p>
         </div>
         <div class="gameboard-wrapper">
             <div class="gameboard">
                 <!-- Empty divs created with JS -->
             </div>
+            <p id="player2-name-para"></p>
         </div>
     </div>
+
+    <dialog id="new-player-dialog">
+        <form>
+            <legend>Player Information</legend>
+            <div>
+                <label for="new-player-input">Enter Player Name:</label>
+                <input type="text" id="new-player-input" required>
+            </div>
+            <div>
+                <button id="create-player-btn" type="button">Create Player</button>
+                <button id="cancel-create-player-btn" type="button">Cancel</button>
+            </div>
+        </form>
+    </dialog>
 </body>
 </html>
