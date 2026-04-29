@@ -1,3 +1,7 @@
+::backdrop {
+    background-color: white;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -32,5 +36,11 @@ dialog {
 }
 
 .gameboard div {
+    --place-ship-color: rgb(0, 215, 255);
+
     border: 0.5px solid black;
+    & .highlight {
+        border: 2px solid  rgb(0, 215, 255);
+        background-color:  rgb(0, 215, 255, 0.25);
+    }
 }

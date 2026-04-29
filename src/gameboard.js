@@ -1,7 +1,16 @@
+import { Ship } from "./ship";
+
 class Gameboard {
     constructor() {
         this.hitTracker = new Set();
         this.numShipsSunk = 0;
+        this.fleet = {
+            'carrier': new Ship(5),
+            'battleship': new Ship(4),
+            'destroyer': new Ship(3),
+            'submarine': new Ship(3),
+            'patrolBoat': new Ship(2),
+        }
     }
 
     // For player's own board
@@ -59,7 +68,7 @@ class Gameboard {
     // "Messages" will look different with a UI
         // If I recieve an attack, I see all my ships and were the attack went
         // If computer recieves an attack, I see where it went and if it hit/sunk a ship
-    receiveAttack(xCoordinate, yCoordinate, fleetParam = fleet) {
+    receiveAttack(xCoordinate, yCoordinate, fleetParam = this.fleet) {
         const hitCoordinates = `${xCoordinate},${yCoordinate}`;
 
         // How should I reword this now that it's from the player's POV?
@@ -93,7 +102,7 @@ class Gameboard {
         return hitData;
     }
 
-    #displayMessage(hitData, fleetParam = fleet) {
+    #displayMessage(hitData, fleetParam = this.fleet) {
         let message = 'Attack missed!';
         if (this.numShipsSunk === Object.keys(fleetParam).length) message = `All your ships have been sunk!`;
         else if (hitData.shipSunk) message = ` Your ${hitData.shipType} has been sunk!`;

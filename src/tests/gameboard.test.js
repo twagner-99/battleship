@@ -1,7 +1,6 @@
 import { Gameboard } from "../gameboard";
 import { Ship } from "../ship";
 
-
 let gameboardMock;
 beforeEach(() => {
     gameboardMock = new Gameboard();
