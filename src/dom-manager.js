@@ -2,38 +2,33 @@ import { Ship } from "./ship.js";
 import { Gameboard } from "./gameboard.js";
 import { createPlayer, getPlayers } from "./players.js";
 
-// On page load, open New Game modal
-
-// const newGameDiaglog = 
-// document.querySelector('#new-game-dialog').openModal();
-
-// When New Game Btn is clicked, 
+// On page load:
+    // open New Game modal
+// When New Game Btn is clicked:
     // close new game modal and open New Player modal
-// When new player submit btn is clicked
-    // create players, create gamboards, close new player modal
-// Need an interface to place ships
-    // Can only see player board, place ships one by one (with ability to change orientation), confirm when done
-// When confirm is clicked, now user can see player gameboard (with their ships) and computer gameboard where they will click
+// When new player submit btn is clicked:
+    // create players, create gamboards, close new player modal, open placeShip modal
+// In placeShip modal:
+    // Can only see player board
+    // Hovering over grid squares shows current ship
+    // There is a button to change orientation
+    // On grid square click, placeShip()
+// After all ships placed:
+    // User can see player gameboard (with their ships) and computer gameboard where they will click to attack
 
+// If there are multiple btns that do the same exact thing:
+    // Use data attributes
+    // Get all of those btns that do the same thing and add eventListener
 
-// Use composition over inheritance here to create buttons?
-
-// If we btns that do the same exact thing, like multiple 
-    // That submit data or something, we should use data attributes
-    // and we'll have to create another function or create a separate obj
-    // Like submitBtns = {} or something
-
-// This code does not have any dynamically created buttons or items
-    // so we can just make getBtns and getDialogs as IIFEs one time (jk, uneccesaryily confusing)
-    // Because there's nothing dynamically created, we don't NEED to capture
-        // event bubbling, and there's not a million buttons, so I am just
-        // going to add the even listeners directly to the element instead of a parent
-
-
+// This code does not have any dynamically created buttons
+    // So we don't NEED to capture event bubbling.
+    // And since there's not a million buttons, 
+        // I am just adding the eventListeners directly to the element instead of a parent
 
 // Once you have all you functions, consider IIFEs to organize if you need
 // to export a bunch. Then you can just export the function result instead
-// a bunch of individial functions
+// a bunch of individual functions
+
 function getBtns() {
     const btnsArr = document.querySelectorAll('button');
     const btnsObj = {};
@@ -63,7 +58,7 @@ function initialPageSetup() {
     document.querySelector('#new-game-dialog').showModal();
     createGameboardGridDivs();
     addClickEvents();
-    createPlaceShipUI();    // Needs to go AFTER .showModal, otherwise it is not shown
+    createPlaceShipUI(); // Needs to go AFTER .showModal, otherwise it is not shown
 }
 
 function createGameboardGridDivs(numGridSquares = 100) {
@@ -92,18 +87,33 @@ function gameboardGridHandler() {
 }
 
 function createPlaceShipUI() {
-// Need to move the gameboard bag to it's og place after ships are added
+// Need to move the gameboard back to it's original location after ships are added
     const gameboardPlayer1 = document.querySelector('.gameboard.player1');
     dialogs['place-ships-dialog'].appendChild(gameboardPlayer1);
     
 }
 
-function placeShipUIController() {
-    // Please place your batlleship.. wait for user to place it
-    //When you place shiponclick, it'll go to next ship
-    // Cheater way is to have placeship1, placeship2, placeship3 functions.
-    // for each ship, wait until user placeshiponclick
+// On gridSquare click, run placeShip(); to place first ship in fleet
+    // then read that function to drive DOM update
+    // then update ship to be the next ship.
 
+function placeShipUIController() {
+    // Two ways to do this (and a cheater way)
+    // 1 - Use async code
+        // Prompt user to place first ship in fleet
+        // Wait until they place it
+        // Update to next ship in fleet and prompt again until all ships placed
+    // 2 - Sync code, but with interface to click on the ship to be placed
+        // User can see the list of ships, each with corresponding id to their name in fleet
+        // On click of one of the ships, set currentShip to be the clicked ship
+            // and pass currentShip into placeShip() on gridSquare click.
+    // 3 - Cheater way (or is it?)
+        // This could be callback hell
+        // Have placeship1, placeship2, placeship3 functions that prompt user to place the ship 
+            // Subequent placeship functions would have to be callbacks to the first one
+            // placeship1 (callback = placeship2)
+                // do stuff
+                // add event listener(click, placeship() and placeship2) ... and keep going like that
 }
 
 // Implement drag ability later (will also allow user to change first placement)
@@ -122,7 +132,7 @@ function placeShipOnClick(e) {
     }
 }
 
-// on mouseenter a div, do this. then untoggle the class mouseleave
+// on mouseenter a gridSquare div, do this.
 function placeShipHoverHandler(e) {
     const coordinates = e.target.id;
     const xCoord = coordinates[0];
@@ -144,7 +154,6 @@ function placeShipHoverHandler(e) {
             case 'north':
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextYCoordinate++;
-                    // if (nextYCoordinate > 9) throw new Error('Coordinates are outside gameboard range.');
                     calculatedHoverCoordinates.push(`${bowXCoordinate},${nextYCoordinate}`);
                 }
                 break;
@@ -152,7 +161,6 @@ function placeShipHoverHandler(e) {
             case 'south':
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextYCoordinate--;
-                    // if (nextYCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
                     ship.coordinates.push(`${bowXCoordinate},${nextYCoordinate}`);
                 }
                 break;
@@ -160,7 +168,6 @@ function placeShipHoverHandler(e) {
             case 'east':
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextXCoordinate--;
-                    // if (nextXCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
                     ship.coordinates.push(`${nextXCoordinate},${bowYCoordinate}`);
                 }
                 break;
@@ -168,7 +175,6 @@ function placeShipHoverHandler(e) {
             case 'west':
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextXCoordinate++;
-                    // if (nextXCoordinate > 9) throw new Error('Coordinates are outside gameboard range.');
                     ship.coordinates.push(`${nextXCoordinate},${bowYCoordinate}`);
                 }
                 break;
@@ -185,11 +191,6 @@ function placeShipHoverHandler(e) {
     }
 }
 
-
-
-
-//on click, place ship function
-//then read that function to drive DOM update
 
 const orientationHandler = (function() {
     const orientationBtn = document.querySelector('#orientation-btn');
@@ -217,7 +218,6 @@ const orientationHandler = (function() {
 
 
 // add click event listeners to every grid.
-
 // Need two modes for grid square clicks - place ship and attack
 
 function removeAllChildren(parent) {
@@ -253,10 +253,9 @@ function gridSquareHandler() {
     // On click, 
 }
 
-// Make this an actual function
-    // Takes btn object (default?), and whatever function you want
-    // Would be better in theory, but honestly harder to follow espeically with such a small app
-    // It would just add a llyer of uneeded abstraction without a lot of beneft 
+// I could make this an actual function that takes a btn and. a function to apply
+    // Would be better in theory for open-closed, but in reality harder to follow.
+    // This application is so small that it would just add another of unnecessary abstraction without a lot of benefit 
 function addClickEvents() {
     btns['new-game-btn'].addEventListener('click', newGameHandler);
     btns['create-player-btn'].addEventListener('click', newPlayerHandler);
