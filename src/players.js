@@ -7,15 +7,17 @@ class Player {
     }
 }
 
-const players = {};
-
-function createPlayer(key, name) {
-    const player = new Player(name);
-    players[key] = player;
-}
+const players = {
+    'player1': new Player('player1'),
+    'player2': new Player('player2'),
+};
 
 function getPlayers() {
     return players;
 }
 
-export { createPlayer, getPlayers };
+function updatePlayerName(player, name) {
+    players[player].name = name;
+}
+
+export { getPlayers, updatePlayerName };

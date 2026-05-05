@@ -23,8 +23,8 @@ class Gameboard {
         if (bowXCoordinate > 9 || bowXCoordinate < 0 || bowYCoordinate > 9 || bowYCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
         
         ship.coordinates.add(`${bowXCoordinate},${bowYCoordinate}`);
-        let nextYCoordinate = bowYCoordinate;   // These aren't technically necessary. We could just increment the bow coordinates within the for loop. But then it's a bit unclear because they'd no longer be the coordinates of the bow.
         let nextXCoordinate = bowXCoordinate;
+        let nextYCoordinate = bowYCoordinate;   // These aren't technically necessary. We could just increment the bow coordinates within the for loop. But then it's a bit unclear because they'd no longer be the coordinates of the bow.
 
         switch (orientation) {
             case 'north':
