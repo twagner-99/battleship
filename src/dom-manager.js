@@ -179,13 +179,11 @@ const gridHighlightHandler = (function() {
     
     function toggleElementHighlight(elementCoordinates) {
         for (let coordinate of elementCoordinates) {
-            const gridSquare = document.querySelector(`#place-ships-dialog.player1 [id='${coordinate}'`); // THIS IS THE PROBLEM
-            console.log(gridSquare);
+            const gridSquare = document.querySelector(`#place-ships-dialog.player1 [id='${coordinate}'`);
+            if (gridSquare === null) continue; // Because we get can't read props of null when highlight goes out of bounds
             gridSquare.classList.toggle('highlight');
         }
     }
-
-    // NULL ERROR WHEN HIGHLIGHT GOES OUT OF BOUNDS
 
     return {
         getElementCoordinatesToHighlight,
