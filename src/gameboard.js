@@ -14,6 +14,7 @@ class Gameboard {
     }
 
     // For player's own board
+    // Need a fail safe so you can't place ships where another one already is
     placeShip(ship, bowXCoordinate, bowYCoordinate, orientation) {
         // North - Bow is at top, rest follows downwards
         // South - Bow is at bottom, rest follows upwards
@@ -22,7 +23,7 @@ class Gameboard {
         
         if (bowXCoordinate > 9 || bowXCoordinate < 0 || bowYCoordinate > 9 || bowYCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
         
-        ship.coordinates.add(`${bowXCoordinate},${bowYCoordinate}`);
+        ship.coordinates.add(`${bowXCoordinate}${bowYCoordinate}`);
         let nextXCoordinate = bowXCoordinate;
         let nextYCoordinate = bowYCoordinate;   // These aren't technically necessary. We could just increment the bow coordinates within the for loop. But then it's a bit unclear because they'd no longer be the coordinates of the bow.
 
@@ -31,7 +32,7 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextYCoordinate++;
                     if (nextYCoordinate > 9) throw new Error('Coordinates are outside gameboard range.');
-                    ship.coordinates.add(`${bowXCoordinate},${nextYCoordinate}`);
+                    ship.coordinates.add(`${bowXCoordinate}${nextYCoordinate}`);
                 }
                 break;
 
@@ -39,7 +40,7 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextYCoordinate--;
                     if (nextYCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
-                    ship.coordinates.add(`${bowXCoordinate},${nextYCoordinate}`);
+                    ship.coordinates.add(`${bowXCoordinate}${nextYCoordinate}`);
                 }
                 break;
 
@@ -47,7 +48,7 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextXCoordinate--;
                     if (nextXCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
-                    ship.coordinates.add(`${nextXCoordinate},${bowYCoordinate}`);
+                    ship.coordinates.add(`${nextXCoordinate}${bowYCoordinate}`);
                 }
                 break;
 
@@ -55,7 +56,7 @@ class Gameboard {
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextXCoordinate++;
                     if (nextXCoordinate > 9) throw new Error('Coordinates are outside gameboard range.');
-                    ship.coordinates.add(`${nextXCoordinate},${bowYCoordinate}`);
+                    ship.coordinates.add(`${nextXCoordinate}${bowYCoordinate}`);
                 }
                 break;
             default:
@@ -69,7 +70,7 @@ class Gameboard {
         // If I recieve an attack, I see all my ships and were the attack went
         // If computer recieves an attack, I see where it went and if it hit/sunk a ship
     receiveAttack(xCoordinate, yCoordinate, fleetParam = this.fleet) {
-        const hitCoordinates = `${xCoordinate},${yCoordinate}`;
+        const hitCoordinates = `${xCoordinate}${yCoordinate}`;
 
         // How should I reword this now that it's from the player's POV?
         if (this.hitTracker.has(hitCoordinates)) throw new Error('Coordinate already hit. Try Again.');

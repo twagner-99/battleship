@@ -87,13 +87,15 @@ function gameboardGridHandler() {
 
 // Needs to be updated when player2 functionality is added
 function createPlaceShipUI() {
-    // Need to move the gameboard back to it's original location after ships are added
     const gameboardPlayer1 = document.querySelector('.gameboard.player1');  
     const player1GameboardGridSquares = document.querySelectorAll('.gameboard.player1 div');
 
+    showWhatShipToPlace();
+
     for (let gridSquare of player1GameboardGridSquares) {
-        gridSquare.addEventListener('mouseenter', placeShipHoverHandler);
-        gridSquare.addEventListener('mouseleave', placeShipHoverHandler);
+        gridSquare.addEventListener('mouseenter', hoverHandler);
+        gridSquare.addEventListener('mouseleave', hoverHandler);
+        gridSquare.addEventListener('click', placeShipHandler);
     }
 
     dialogs['place-ships-dialog'].appendChild(gameboardPlayer1);
@@ -105,70 +107,93 @@ function placeShipUISetup() {
     // placeShipUIController();
 }
 
-function placeShipUIController() {
-    const placeShipPara = document.querySelector('#place-ship-para');
-    const player1 = getPlayers().player1;
-    const player1Fleet = player1.gameboard.fleet;
-    
-    for (let ship in player1Fleet) {
-        placeShipPara.textContent = `Place your ${ship}`;
-
-        const player1GameboardGridSquares = document.querySelectorAll('.gameboard.player1 div');
-        for (let gridSquare of player1GameboardGridSquares) {
-            gridSquare.addEventListener('mouseenter', (e) => {
-                placeShipHoverHandler(e, player1Fleet[ship]);
-            });
-        }
-
-        // addEventToGridSquares('mouseenter', (e) => {
-        //     placeShipHoverHandler(e, ship);
-        // });
-        
-        return new Promise((resolve) => {
-            addEventToGridSquares('click', (e) => {
-                const coordinates = e.target.id;
-                const bowXCoord = coordinates[0];
-                const bowYCoord = coordinates[1];
-                const orientation = orientationHandler.getOrientation();
-                
-                player1.gameboard.placeShip(player1Fleet[ship], bowXCoord, bowYCoord, orientation);
-
-                resolve();
-            })
-        })
+function placeShipStylingHandler(shipObj) {
+    for (let coordinate of shipObj.coordinates) {
+        const gridSquare = document.querySelector(`#place-ships-dialog.player1 [id='${coordinate}'`);
+        gridSquare.classList.toggle('ship-placed');
     }
 }
 
+function allShipsPlacedChecker(player) {
+    const fleet = player.gameboard.fleet;
+    for (let shipObj in fleet) {
+        let setSize = fleet[shipObj].coordinates.size;
+        if (!setSize) return false;
+    }
+    return true;
+}
+
+function cleanupAfterPlaceLastShip() {
+    dialogs['place-ships-dialog'].close();
+    const gameboardPlayer1 = document.querySelector('.gameboard.player1');
+    const player1GameboardGridSquares = document.querySelectorAll('.gameboard.player1 div');
+
+    for (let gridSquare of player1GameboardGridSquares) {
+        gridSquare.removeEventListener('mouseenter', hoverHandler);
+        gridSquare.removeEventListener('mouseleave', hoverHandler);
+        gridSquare.removeEventListener('click', placeShipHandler);
+    }
+
+    const gameboardWrapper = document.querySelector('.gameboard-wrapper.player1')
+    gameboardWrapper.appendChild(gameboardPlayer1);
+}
+
+function showWhatShipToPlace() {
+    const placeShipPara = document.querySelector('#place-ship-para');
+    const shipName = shipHandler.getCurrentShipName('player1');
+    placeShipPara.textContent = `Place your ${shipName}`;
+}
+
+function placeShipHandler(e) {
+ // Will need to be able to get either player later on
+    const coordinates = e.target.id;
+    const xCoord = coordinates[0];
+    const yCoord = coordinates[1];
+    const player1 = getPlayers().player1;
+    const shipObj = shipHandler.getCurrentShipObj('player1');
+    const orientation = orientationHandler.getOrientation();
+
+    
+    player1.gameboard.placeShip(shipObj, xCoord, yCoord, orientation);
+    placeShipStylingHandler(shipObj);
+    if (allShipsPlacedChecker(player1)) {
+        cleanupAfterPlaceLastShip();
+        return;
+    } 
+    shipHandler.updateCurrentShipIndex('player1');
+    showWhatShipToPlace();
+}
+
 const gridHighlightHandler = (function() {
-    function getElementCoordinatesToHighlight(ship, bowXCoordinate, bowYCoordinate, orientation) {
+    function getElementCoordinatesToHighlight(shipObj, bowXCoordinate, bowYCoordinate, orientation) {
         const calculatedCoordinates = [`${bowXCoordinate}${bowYCoordinate}`];
         let nextXCoordinate = bowXCoordinate;
         let nextYCoordinate = bowYCoordinate;
     
         switch (orientation) {
             case 'north':
-                for (let i = 1; i < ship.shipLength; i++) {
+                for (let i = 1; i < shipObj.shipLength; i++) {
                     nextYCoordinate++;
                     calculatedCoordinates.push(`${bowXCoordinate}${nextYCoordinate}`);
                 }
                 break;
     
             case 'south':
-                for (let i = 1; i < ship.shipLength; i++) {
+                for (let i = 1; i < shipObj.shipLength; i++) {
                     nextYCoordinate--;
                     calculatedCoordinates.push(`${bowXCoordinate}${nextYCoordinate}`);
                 }
                 break;
     
             case 'east':
-                for (let i = 1; i < ship.shipLength; i++) {
+                for (let i = 1; i < shipObj.shipLength; i++) {
                     nextXCoordinate--;
                     calculatedCoordinates.push(`${nextXCoordinate}${bowYCoordinate}`);
                 }
                 break;
     
             case 'west':
-                for (let i = 1; i < ship.shipLength; i++) {
+                for (let i = 1; i < shipObj.shipLength; i++) {
                     nextXCoordinate++;
                     calculatedCoordinates.push(`${nextXCoordinate}${bowYCoordinate}`);
                 }
@@ -192,24 +217,17 @@ const gridHighlightHandler = (function() {
 })();
 
 
-function placeShipHoverHandler(e) {
+function hoverHandler(e) {
     const coordinates = e.target.id;
     const xCoord = coordinates[0];
     const yCoord = coordinates[1];
-    const ship = shipHandler.getCurrentShip('player1'); // Will need to be able to get either player later on
+    const shipObj = shipHandler.getCurrentShipObj('player1'); // Will need to be able to get either player later on
     const orientation = orientationHandler.getOrientation();
 
-    const elementCoordinatesToHighlight = gridHighlightHandler.getElementCoordinatesToHighlight(ship, xCoord, yCoord, orientation);
+    const elementCoordinatesToHighlight = gridHighlightHandler.getElementCoordinatesToHighlight(shipObj, xCoord, yCoord, orientation);
     gridHighlightHandler.toggleElementHighlight(elementCoordinatesToHighlight);
 }
-// placeShipUIController()
-//     .then(() => {
-    //         placeShipUIController();
-    //     });
-    
-// Don't forget to remove any before this...
-// Will need to remove placeship event listeners and replace with receive attack event listeners
-// Could wrap these two in an IIFE for organization, or put into own modules
+
 function addEventToGridSquares (event, callback) {
     const player1GameboardGridSquares = document.querySelectorAll('.gameboard.player1 div');
     const player2GameboardGridSquares = document.querySelectorAll('.gameboard.player2 div');
@@ -236,24 +254,6 @@ function removeEventFromGridSquares (event, callback) {
     }
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Implement drag ability later (will also allow user to change first placement)
-// Also need fail safe so ships can't be placed on top of each other
-// And a fail safe so ships can't be placed in adjacent squares
-// function placeShipOnClick(e) {    
-//     const placeShipPara = document.querySelector('#place-ship-para');
-//     const player1 = getPlayers().player1;
-//     for (let ship in player1.gameboard.fleet) {
-//         placeShipPara.textContent = `Place your ${ship}`;
-//         const coordinates = e.target.id;
-//         const xCoord = coordinates[0];
-//         const yCoord = coordinates[1];
-//         const orientation = orientationHandler.getOrientation();
-//         player1.gameboard.placeShip(ship, xCoord, yCoord, orientation);
-//     }
-// }
-
 const shipHandler = (function () {
     // player1 and player2 always both have same fleet keys.
     let currentIndex;
@@ -262,15 +262,21 @@ const shipHandler = (function () {
         'player2': 0,
     };
 
-    const fleet = getPlayers().player1.gameboard.fleet; // Can't do this yet. hasn;t been created. has to run after players created.
+    const fleet = getPlayers().player1.gameboard.fleet;
     const fleetKeys = Object.keys(fleet);
     const numOfShips = fleet.length;
     
-    function getCurrentShip(player) {
+    function getCurrentShipObj(player) {
         currentIndex = indices[player];
         let currentShipName = fleetKeys[currentIndex];
         let currentPlayerFleet = getPlayers()[player].gameboard.fleet;
         return currentPlayerFleet[currentShipName];
+    }
+
+    function getCurrentShipName(player) {
+        currentIndex = indices[player];
+        let currentShipName = fleetKeys[currentIndex];
+        return currentShipName;
     }
     
     function updateCurrentShipIndex(player) {
@@ -284,7 +290,8 @@ const shipHandler = (function () {
     }
 
     return {
-        getCurrentShip,
+        getCurrentShipObj,
+        getCurrentShipName,
         updateCurrentShipIndex,
         resetCurrentShipIndex,
     }
