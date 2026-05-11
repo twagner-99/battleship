@@ -1,15 +1,17 @@
 import { Gameboard } from "./gameboard.js";
 
 class Player {
-    constructor(name) {
+    constructor(name, playerNum, attacker) {
         this.name = name;   // Will be either human or computer
+        this.playerNum = playerNum
+        this.attacker = attacker;
         this.gameboard = new Gameboard();
     }
 }
 
 const players = {
-    'player1': new Player('player1'),
-    'player2': new Player('player2'),
+    'player1': new Player('player1', 'player1', true),
+    'player2': new Player('player2', 'player2', false),
 };
 
 function getPlayers() {

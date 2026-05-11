@@ -27,6 +27,8 @@ class Gameboard {
         let nextXCoordinate = bowXCoordinate;
         let nextYCoordinate = bowYCoordinate;   // These aren't technically necessary. We could just increment the bow coordinates within the for loop. But then it's a bit unclear because they'd no longer be the coordinates of the bow.
 
+        // Don't really want to throw errors...
+        // In the placeshipui controller, just show a dialog that says you can't do that
         switch (orientation) {
             case 'north':
                 for (let i = 1; i < ship.shipLength; i++) {
@@ -64,20 +66,16 @@ class Gameboard {
         }
     }
 
-    // I'm allowed to know if they've hit my ship and if it's sunk
-    // I'm allowed to know if I've hit their ship and if it's sunk
-    // "Messages" will look different with a UI
-        // If I recieve an attack, I see all my ships and were the attack went
-        // If computer recieves an attack, I see where it went and if it hit/sunk a ship
     receiveAttack(xCoordinate, yCoordinate, fleetParam = this.fleet) {
         const hitCoordinates = `${xCoordinate}${yCoordinate}`;
 
-        // How should I reword this now that it's from the player's POV?
+        // Don't want to throw an error
+        // Need a message for the user to try again.
+        // Need to manage this so if this happens, player isn't toggled in dom-mananger.js
         if (this.hitTracker.has(hitCoordinates)) throw new Error('Coordinate already hit. Try Again.');
         this.hitTracker.add(hitCoordinates);
 
-        const hitData = this.#hitChecker(hitCoordinates, fleetParam);
-        this.#displayMessage(hitData, fleetParam);
+        return this.#hitChecker(hitCoordinates, fleetParam);
     }
         
     #hitChecker(hitCoordinates, fleetParam) {
@@ -101,15 +99,6 @@ class Gameboard {
             if (hitData.shipHit) break; // So we don't get stuck in the for...in loop longer than we need to be
         }
         return hitData;
-    }
-
-    #displayMessage(hitData, fleetParam = this.fleet) {
-        let message = 'Attack missed!';
-        if (this.numShipsSunk === Object.keys(fleetParam).length) message = `All your ships have been sunk!`;
-        else if (hitData.shipSunk) message = ` Your ${hitData.shipType} has been sunk!`;
-        else if (hitData.shipHit) message = `Your ${hitData.shipType} has been hit!`;
-        
-        console.log(message);
     }
 }
 

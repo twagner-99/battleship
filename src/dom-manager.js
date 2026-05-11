@@ -59,6 +59,7 @@ function addClickEvents() {
     btns['new-game-btn'].addEventListener('click', newGameHandler);
     btns['create-player-btn'].addEventListener('click', newPlayerHandler);
     btns['cancel-create-player-btn'].addEventListener('click', () => dialogs['new-player-dialog'].close());
+    btns['ok-btn'].addEventListener('click', () => dialogs['ship-hit-message-dialog'].close());
 }
 
 function newGameHandler() {
@@ -81,8 +82,82 @@ function newPlayerHandler() {
     placeShipUISetup()
 }
 
-function gameboardGridHandler() {
-    // Put an X if ship, a dot if empty. 
+const playerHandler = (function() {
+    const players = getPlayers();
+
+    function getAttackingPlayerObj() {
+        for (let player in players) {
+            if (players[player].attacker) return players[player];
+        }
+    }
+
+    function getDefensivePlayerObj() {
+        for (let player in players) {
+            if (!players[player].attacker) return players[player];
+        }
+    }
+    
+    function togglePlayer() {
+        for (let player in players) {
+            players[player].attacker = (players[player].attacker === true) ? false : true;
+        }
+    }
+
+    return {
+        getAttackingPlayerObj,
+        getDefensivePlayerObj,
+        togglePlayer,
+    }
+})();
+
+function receiveAttackHandler(e) {
+    const coordinates = e.target.id;
+    const xCoord = coordinates[0];
+    const yCoord = coordinates[1];
+
+    const player = playerHandler.getDefensivePlayerObj();
+    const playerNum = player.playerNum;
+    const hitData = player.gameboard.receiveAttack(xCoord, yCoord);
+    displayMessage(hitData, player);
+    receiveAttackStylingHandler(hitData, coordinates, playerNum);
+    playerHandler.togglePlayer();
+}
+
+function receiveAttackStylingHandler(hitData, coordinates, playerNum) {  
+    const gridSquare = document.querySelector(`.gameboard.${playerNum} [id='${coordinates}'`);
+
+    if (hitData.shipHit) gridSquare.classList.toggle('attack-hit');
+    else gridSquare.classList.toggle('attack-missed');
+}
+
+function displayMessage(hitData, player) {
+    const fleet = player.gameboard.fleet;
+    const fleetSize = Object.keys(fleet).length;
+    let message;
+    let counter = 1;
+
+    if (hitData.shipHit) message = `Your ${hitData.shipType} has been hit!`;
+    else if (hitData.shipSunk) message = ` Your ${hitData.shipType} has been sunk!`;
+    else message = 'Attack missed!';
+
+    for (let shipObj in fleet) {
+        if (!fleet[shipObj].isSunk()) break;
+        else if (fleet[shipObj].isSunk() && counter === fleetSize) message = `All your ships have been sunk!`;
+        counter++;
+    }
+    
+    const shipHitMessagePara = document.querySelector('#ship-hit-message-para');
+    shipHitMessagePara.textContent = message;
+    dialogs['ship-hit-message-dialog'].showModal();
+}
+
+// Will need to update to allow player1 board to be clicked if two players
+function createReceiveAttackUI() {
+    const gridSquares = document.querySelectorAll('.player2.gameboard div');
+        
+    for (let gridSquare of gridSquares) {
+        gridSquare.addEventListener('click', receiveAttackHandler);
+    }
 }
 
 // Needs to be updated when player2 functionality is added
@@ -104,7 +179,6 @@ function createPlaceShipUI() {
 function placeShipUISetup() {
     createPlaceShipUI();
     dialogs['place-ships-dialog'].showModal();
-    // placeShipUIController();
 }
 
 function placeShipStylingHandler(shipObj) {
@@ -158,6 +232,7 @@ function placeShipHandler(e) {
     placeShipStylingHandler(shipObj);
     if (allShipsPlacedChecker(player1)) {
         cleanupAfterPlaceLastShip();
+        createReceiveAttackUI();
         return;
     } 
     shipHandler.updateCurrentShipIndex('player1');
@@ -216,7 +291,6 @@ const gridHighlightHandler = (function() {
     }
 })();
 
-
 function hoverHandler(e) {
     const coordinates = e.target.id;
     const xCoord = coordinates[0];
@@ -226,32 +300,6 @@ function hoverHandler(e) {
 
     const elementCoordinatesToHighlight = gridHighlightHandler.getElementCoordinatesToHighlight(shipObj, xCoord, yCoord, orientation);
     gridHighlightHandler.toggleElementHighlight(elementCoordinatesToHighlight);
-}
-
-function addEventToGridSquares (event, callback) {
-    const player1GameboardGridSquares = document.querySelectorAll('.gameboard.player1 div');
-    const player2GameboardGridSquares = document.querySelectorAll('.gameboard.player2 div');
-
-    for (let gridSquare of player1GameboardGridSquares) {
-        gridSquare.addEventListener(`${event}`, callback);
-    }
-
-    for (let gridSquare of player2GameboardGridSquares) {
-        gridSquare.addEventListener(`${event}`, callback);
-    }
-}
-
-function removeEventFromGridSquares (event, callback) {
-    const player1GameboardGridSquares = document.querySelectorAll('.gameboard.player1 div');
-    const player2GameboardGridSquares = document.querySelectorAll('.gameboard.player2 div');
-
-    for (let gridSquare of player1GameboardGridSquares) {
-        gridSquare.removeEventListener('click', callback);
-    }
-
-    for (let gridSquare of player2GameboardGridSquares) {
-        gridSquare.removeEventListener('click', callback);
-    }
 }
 
 const shipHandler = (function () {
@@ -313,6 +361,7 @@ const orientationHandler = (function() {
         orientation = orientationArr[counter];
     }
 
+    // might want to move this to add clickEvents function
     orientationBtn.addEventListener('click', toggleOrientation);
 
     return {
@@ -320,69 +369,9 @@ const orientationHandler = (function() {
     }
 })();
 
-// add click event listeners to every grid.
-// Need two modes for grid square clicks - place ship and attack
 
 function removeAllChildren(parent) {
     while (parent.lastChild) parent.removeChild(parent.lastChild);
 }
 
 export { initialPageSetup };
-
-// IT'S OFFICIAL, EVERYTHING IS FUCKED UP. NEED TO RETHINK ALL OF THIS.
-// STOP NESTING
-// JUST CREATE REGULAR ASS HANDLERS
-// REPEAT YOURSELF IF NEEDED AND REFACTOR LATER
-// CONSIDER A SHIP HANDLER THAT GETS AND SETS
-
-// On page load:
-// open New Game modal
-// When New Game Btn is clicked:
-// close new game modal and open New Player modal
-// When new player submit btn is clicked:
-// create players, create gamboards, close new player modal, open placeShip modal
-// In placeShip modal:
-// Can only see player board
-// Hovering over grid squares shows current ship
-// There is a button to change orientation
-// On grid square click, placeShip()
-// After all ships placed:
-// User can see player gameboard (with their ships) and computer gameboard where they will click to attack
-
-// If there are multiple btns that do the same exact thing:
-// Use data attributes
-// Get all of those btns that do the same thing and add eventListener
-
-// This code does not have any dynamically created buttons
-// So we don't NEED to capture event bubbling.
-// And since there's not a million buttons, 
-// I am just adding the eventListeners directly to the element instead of a parent
-
-// Once you have all you functions, consider IIFEs to organize if you need
-// to export a bunch. Then you can just export the function result instead
-// a bunch of individual functions
-
-// FUNCTION TO UPDATE DOM WHEN SHIP IS PLACED
-// On gridSquare click, run placeShip(); to place first ship in fleet
-// then read that function to drive DOM update
-// then update ship to be the next ship.
-
-// FUNCTION TO CONTROL THE USER PLACINGSHIP
-// Two ways to do this (and a cheater way)
-// 1 - Use async code
-// Prompt user to place first ship in fleet
-// Wait until they place it
-// Update to next ship in fleet and prompt again until all ships placed
-// 2 - Sync code, but with interface to click on the ship to be placed
-// User can see the list of ships, each with corresponding id to their name in fleet
-// On click of one of the ships, set currentShip to be the clicked ship
-// and pass currentShip into placeShip() on gridSquare click.
-// 3 - Cheater way (or is it?)
-// This could be callback hell
-// Have placeship1, placeship2, placeship3 functions that prompt user to place the ship 
-// Subequent placeship functions would have to be callbacks to the first one
-// placeship1 (callback = placeship2)
-// do stuff
-// add event listener(click, placeship() and placeship2) ... and keep going like that
-
-// I'm going to write this two ways - first with promises. Then with async await.
