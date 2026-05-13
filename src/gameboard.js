@@ -23,43 +23,49 @@ class Gameboard {
         
         if (bowXCoordinate > 9 || bowXCoordinate < 0 || bowYCoordinate > 9 || bowYCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
         
-        ship.coordinates.add(`${bowXCoordinate}${bowYCoordinate}`);
+        const coordinateArr = [`${bowXCoordinate}${bowYCoordinate}`];
         let nextXCoordinate = bowXCoordinate;
-        let nextYCoordinate = bowYCoordinate;   // These aren't technically necessary. We could just increment the bow coordinates within the for loop. But then it's a bit unclear because they'd no longer be the coordinates of the bow.
+        let nextYCoordinate = bowYCoordinate;
 
-        // Don't really want to throw errors...
-        // In the placeshipui controller, just show a dialog that says you can't do that
         switch (orientation) {
             case 'north':
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextYCoordinate++;
                     if (nextYCoordinate > 9) throw new Error('Coordinates are outside gameboard range.');
-                    ship.coordinates.add(`${bowXCoordinate}${nextYCoordinate}`);
+                    coordinateArr.push(`${bowXCoordinate}${nextYCoordinate}`);
                 }
+                // Only add coordinates to ship.coordinates if no error is thrown.
+                // Prevents previous issue where when you click to place ship and some calculated coordinates
+                // are out of range, the ones that were still in range were added to ship.coordinates.
+                // This only adds coordinates when everything in the calculated coordinates is legal
+                ship.coordinates = new Set(coordinateArr);
                 break;
 
             case 'south':
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextYCoordinate--;
                     if (nextYCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
-                    ship.coordinates.add(`${bowXCoordinate}${nextYCoordinate}`);
+                    coordinateArr.push(`${bowXCoordinate}${nextYCoordinate}`);
                 }
+                ship.coordinates = new Set(coordinateArr);
                 break;
 
             case 'east':
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextXCoordinate--;
                     if (nextXCoordinate < 0) throw new Error('Coordinates are outside gameboard range.');
-                    ship.coordinates.add(`${nextXCoordinate}${bowYCoordinate}`);
+                    coordinateArr.push(`${nextXCoordinate}${bowYCoordinate}`);
                 }
+                ship.coordinates = new Set(coordinateArr);
                 break;
 
             case 'west':
                 for (let i = 1; i < ship.shipLength; i++) {
                     nextXCoordinate++;
                     if (nextXCoordinate > 9) throw new Error('Coordinates are outside gameboard range.');
-                    ship.coordinates.add(`${nextXCoordinate}${bowYCoordinate}`);
+                    coordinateArr.push(`${nextXCoordinate}${bowYCoordinate}`);
                 }
+                ship.coordinates = new Set(coordinateArr);
                 break;
             default:
                 throw new Error('Orientation must be a cardinal direction (north, south, east, or west).');

@@ -1,5 +1,3 @@
-import { Ship } from "./ship.js";
-import { Gameboard } from "./gameboard.js";
 import { updatePlayerName, getPlayers } from "./players.js";
 
 function getBtns() {
@@ -59,7 +57,7 @@ function addClickEvents() {
     btns['new-game-btn'].addEventListener('click', newGameHandler);
     btns['create-player-btn'].addEventListener('click', newPlayerHandler);
     btns['cancel-create-player-btn'].addEventListener('click', () => dialogs['new-player-dialog'].close());
-    btns['ok-btn'].addEventListener('click', () => dialogs['ship-hit-message-dialog'].close());
+    // btns['ok-btn'].addEventListener('click', () => dialogs['ship-hit-message-dialog'].close());
 }
 
 function newGameHandler() {
@@ -110,17 +108,56 @@ const playerHandler = (function() {
     }
 })();
 
+function dispatchComputerAttack() {
+    const computerAttack = new Event('click');
+    const coordinate = randomCoordinateGenerator.getRandomCoordinates();
+    const gridSquare = document.querySelector(`.gameboard.player1 [id='${coordinate}'`);
+
+    gridSquare.dispatchEvent(computerAttack);
+}
+
+const randomCoordinateGenerator = (function() {
+    const coordinateTracker = new Set();
+
+    function getRandomCoordinates() {
+        let coordinates = Math.floor(Math.random() * 100);
+        while (coordinateTracker.has(coordinates)) coordinates = Math.floor(Math.random() * 100);
+        coordinateTracker.add(coordinates);
+
+        if (String(coordinates).length === 1) return `0${coordinates}`
+        return `${coordinates}`;
+    }
+
+    return {
+        getRandomCoordinates
+    }
+})();
+
 function receiveAttackHandler(e) {
     const coordinates = e.target.id;
     const xCoord = coordinates[0];
     const yCoord = coordinates[1];
+    let defensivePlayer = playerHandler.getDefensivePlayerObj();
+    let attackingPlayer = playerHandler.getAttackingPlayerObj();
+    const hitData = defensivePlayer.gameboard.receiveAttack(xCoord, yCoord);
 
-    const player = playerHandler.getDefensivePlayerObj();
-    const playerNum = player.playerNum;
-    const hitData = player.gameboard.receiveAttack(xCoord, yCoord);
-    displayMessage(hitData, player);
-    receiveAttackStylingHandler(hitData, coordinates, playerNum);
+    displayMessage(hitData, defensivePlayer, attackingPlayer);
+    receiveAttackStylingHandler(hitData, coordinates, defensivePlayer.playerNum);
     playerHandler.togglePlayer();
+
+    // Move this, why would I add a million event listeners
+    btns['ok-btn'].addEventListener('click', computerTurnHandler);
+
+    // recommend a timer before displatching computer attack display message
+}
+
+function computerTurnHandler() {
+    dialogs['ship-hit-message-dialog'].close()
+    const attackingPlayer = playerHandler.getAttackingPlayerObj();
+    // Could be improved to handle all lower case, too
+    if (attackingPlayer.name === 'Computer') {
+        dispatchComputerAttack();
+    }
 }
 
 function receiveAttackStylingHandler(hitData, coordinates, playerNum) {  
@@ -130,19 +167,19 @@ function receiveAttackStylingHandler(hitData, coordinates, playerNum) {
     else gridSquare.classList.toggle('attack-missed');
 }
 
-function displayMessage(hitData, player) {
-    const fleet = player.gameboard.fleet;
+function displayMessage(hitData, defensivePlayer, attackingPlayer) {
+    const fleet = defensivePlayer.gameboard.fleet;
     const fleetSize = Object.keys(fleet).length;
     let message;
     let counter = 1;
 
-    if (hitData.shipHit) message = `Your ${hitData.shipType} has been hit!`;
-    else if (hitData.shipSunk) message = ` Your ${hitData.shipType} has been sunk!`;
-    else message = 'Attack missed!';
+    if (hitData.shipHit) message = `${attackingPlayer.name} hit ${defensivePlayer.name}'s ${hitData.shipType}!`;
+    else if (hitData.shipSunk) message = `${attackingPlayer.name} sunk ${defensivePlayer.name}'s ${hitData.shipType}!`;
+    else message = `${attackingPlayer.name}'s attack missed!`;
 
     for (let shipObj in fleet) {
         if (!fleet[shipObj].isSunk()) break;
-        else if (fleet[shipObj].isSunk() && counter === fleetSize) message = `All your ships have been sunk!`;
+        else if (fleet[shipObj].isSunk() && counter === fleetSize) message = `${attackingPlayer.name} sunk ${defensivePlayer.name}'s entire fleet!`;
         counter++;
     }
     
@@ -153,7 +190,7 @@ function displayMessage(hitData, player) {
 
 // Will need to update to allow player1 board to be clicked if two players
 function createReceiveAttackUI() {
-    const gridSquares = document.querySelectorAll('.player2.gameboard div');
+    const gridSquares = document.querySelectorAll('.gameboard div');
         
     for (let gridSquare of gridSquares) {
         gridSquare.addEventListener('click', receiveAttackHandler);
@@ -177,6 +214,7 @@ function createPlaceShipUI() {
 }
 
 function placeShipUISetup() {
+    placeAllComputerShips();
     createPlaceShipUI();
     dialogs['place-ships-dialog'].showModal();
 }
@@ -227,16 +265,43 @@ function placeShipHandler(e) {
     const shipObj = shipHandler.getCurrentShipObj('player1');
     const orientation = orientationHandler.getOrientation();
 
-    
-    player1.gameboard.placeShip(shipObj, xCoord, yCoord, orientation);
+    try {
+        player1.gameboard.placeShip(shipObj, xCoord, yCoord, orientation);
+    } catch(e) {
+        alert(e.message);
+        return;
+    }
+
     placeShipStylingHandler(shipObj);
     if (allShipsPlacedChecker(player1)) {
         cleanupAfterPlaceLastShip();
         createReceiveAttackUI();
         return;
-    } 
+    }
+
     shipHandler.updateCurrentShipIndex('player1');
     showWhatShipToPlace();
+}
+
+function placeAllComputerShips() {
+    const computer = getPlayers().player2;
+    const computerFleet = computer.gameboard.fleet;
+    
+    for (let shipName in computerFleet) {
+        let truthChecker = true;
+        while (truthChecker) {
+            try {
+                const orientation = getRandomOrientation();
+                const coordinate = randomCoordinateGenerator.getRandomCoordinates();
+                const xCoord = coordinate[0];
+                const yCoord = coordinate[1];
+                computer.gameboard.placeShip(computerFleet[shipName], xCoord, yCoord, orientation);
+                truthChecker = false;
+            } catch(e) {
+                truthChecker = true;
+            }
+        }
+    }
 }
 
 const gridHighlightHandler = (function() {
@@ -345,6 +410,13 @@ const shipHandler = (function () {
     }
 })();
 
+// Consider placing this in an IIFE with getRandomCoordinate for organization
+function getRandomOrientation() {
+    const orientationArr = ['north', 'east', 'south', 'west'];
+    const randomIndex = Math.floor(Math.random() * orientationArr.length);
+    return orientationArr[randomIndex];
+}
+
 const orientationHandler = (function() {
     const orientationBtn = document.querySelector('#orientation-btn');
     const orientationArr = ['north', 'east', 'south', 'west'];
@@ -375,3 +447,10 @@ function removeAllChildren(parent) {
 }
 
 export { initialPageSetup };
+
+// Need to fix - 
+    // Bug where the same coordinate for teh computer can be randomly generated
+        // Either make it so the generator can't do it twice, or if it gets an error to try again
+    // Need to make sure player and computer can't place ships on top of each other
+        // Even further, make sure they have at least one grid between
+    // Need to add end game and ability to start new game once fleet is sunk
