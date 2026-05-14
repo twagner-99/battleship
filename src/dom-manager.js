@@ -57,7 +57,7 @@ function addClickEvents() {
     btns['new-game-btn'].addEventListener('click', newGameHandler);
     btns['create-player-btn'].addEventListener('click', newPlayerHandler);
     btns['cancel-create-player-btn'].addEventListener('click', () => dialogs['new-player-dialog'].close());
-    // btns['ok-btn'].addEventListener('click', () => dialogs['ship-hit-message-dialog'].close());
+    btns['ok-btn'].addEventListener('click', computerTurnHandler);
 }
 
 function newGameHandler() {
@@ -141,12 +141,17 @@ function receiveAttackHandler(e) {
     let attackingPlayer = playerHandler.getAttackingPlayerObj();
     const hitData = defensivePlayer.gameboard.receiveAttack(xCoord, yCoord);
 
+    // BUG - having issues ending game
+        // Leaving this to make sure ships not placed on top of each other.
+    if (gameOverChecker(defensivePlayer)) {
+        displayMessage(hitData, defensivePlayer, attackingPlayer);
+        // Go back to new game modal after this
+        return;
+    }
+
     displayMessage(hitData, defensivePlayer, attackingPlayer);
     receiveAttackStylingHandler(hitData, coordinates, defensivePlayer.playerNum);
     playerHandler.togglePlayer();
-
-    // Move this, why would I add a million event listeners
-    btns['ok-btn'].addEventListener('click', computerTurnHandler);
 
     // recommend a timer before displatching computer attack display message
 }
@@ -158,6 +163,14 @@ function computerTurnHandler() {
     if (attackingPlayer.name === 'Computer') {
         dispatchComputerAttack();
     }
+}
+
+function gameOverChecker(defensivePlayer) {
+    const fleet = defensivePlayer.gameboard.fleet;
+    for (let shipObj in fleet) {
+        if (!fleet[shipObj].isSunk()) return false;
+    }
+    return true;
 }
 
 function receiveAttackStylingHandler(hitData, coordinates, playerNum) {  
@@ -179,7 +192,7 @@ function displayMessage(hitData, defensivePlayer, attackingPlayer) {
 
     for (let shipObj in fleet) {
         if (!fleet[shipObj].isSunk()) break;
-        else if (fleet[shipObj].isSunk() && counter === fleetSize) message = `${attackingPlayer.name} sunk ${defensivePlayer.name}'s entire fleet!`;
+        else if (fleet[shipObj].isSunk() && counter === fleetSize) message = `${attackingPlayer.name} sunk ${defensivePlayer.name}'s entire fleet! ${attackingPlayer.name} wins!`;
         counter++;
     }
     
@@ -311,28 +324,14 @@ const gridHighlightHandler = (function() {
         let nextYCoordinate = bowYCoordinate;
     
         switch (orientation) {
-            case 'north':
+            case 'vertical':
                 for (let i = 1; i < shipObj.shipLength; i++) {
                     nextYCoordinate++;
                     calculatedCoordinates.push(`${bowXCoordinate}${nextYCoordinate}`);
                 }
                 break;
     
-            case 'south':
-                for (let i = 1; i < shipObj.shipLength; i++) {
-                    nextYCoordinate--;
-                    calculatedCoordinates.push(`${bowXCoordinate}${nextYCoordinate}`);
-                }
-                break;
-    
-            case 'east':
-                for (let i = 1; i < shipObj.shipLength; i++) {
-                    nextXCoordinate--;
-                    calculatedCoordinates.push(`${nextXCoordinate}${bowYCoordinate}`);
-                }
-                break;
-    
-            case 'west':
+            case 'horizontal':
                 for (let i = 1; i < shipObj.shipLength; i++) {
                     nextXCoordinate++;
                     calculatedCoordinates.push(`${nextXCoordinate}${bowYCoordinate}`);
@@ -412,16 +411,16 @@ const shipHandler = (function () {
 
 // Consider placing this in an IIFE with getRandomCoordinate for organization
 function getRandomOrientation() {
-    const orientationArr = ['north', 'east', 'south', 'west'];
+    const orientationArr = ['vertical', 'horizontal'];
     const randomIndex = Math.floor(Math.random() * orientationArr.length);
     return orientationArr[randomIndex];
 }
 
 const orientationHandler = (function() {
     const orientationBtn = document.querySelector('#orientation-btn');
-    const orientationArr = ['north', 'east', 'south', 'west'];
+    const orientationArr = ['vertical', 'horizontal'];
     let counter = 0;
-    let orientation = 'north';
+    let orientation = 'vertical';
 
     function getOrientation() {
         return orientation;
@@ -429,7 +428,7 @@ const orientationHandler = (function() {
 
     function toggleOrientation() {
         counter++;
-        if (counter > 3) counter = 0;
+        if (counter > (orientationArr.length - 1)) counter = 0;
         orientation = orientationArr[counter];
     }
 
@@ -449,8 +448,6 @@ function removeAllChildren(parent) {
 export { initialPageSetup };
 
 // Need to fix - 
-    // Bug where the same coordinate for teh computer can be randomly generated
-        // Either make it so the generator can't do it twice, or if it gets an error to try again
     // Need to make sure player and computer can't place ships on top of each other
         // Even further, make sure they have at least one grid between
-    // Need to add end game and ability to start new game once fleet is sunk
+    // Need to add end game and ability to start new game once fleet is sunk - WORKING ON THIS. HAVING PROBLEMS

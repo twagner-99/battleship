@@ -2,7 +2,7 @@ class Ship {
     constructor(shipLength, hitCount = 0, sunkStatus = false) {
         this.shipLength = shipLength;
         this.hitCount = hitCount;
-        this.sunkStatus = sunkStatus;
+        this.sunkStatus = sunkStatus;   // Can probably get rid of this...
         this.coordinates = new Set();
     }
 
