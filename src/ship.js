@@ -3,7 +3,8 @@ class Ship {
         this.shipLength = shipLength;
         this.hitCount = hitCount;
         this.sunkStatus = sunkStatus;   // Can probably get rid of this...
-        this.coordinates = new Set();
+        this.shipCoordinates = new Set();
+        this.bufferCoordinates = new Set();
     }
 
     hit() {

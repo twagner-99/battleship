@@ -233,7 +233,7 @@ function placeShipUISetup() {
 }
 
 function placeShipStylingHandler(shipObj) {
-    for (let coordinate of shipObj.coordinates) {
+    for (let coordinate of shipObj.shipCoordinates) {
         const gridSquare = document.querySelector(`#place-ships-dialog.player1 [id='${coordinate}'`);
         gridSquare.classList.toggle('ship-placed');
     }
@@ -242,7 +242,7 @@ function placeShipStylingHandler(shipObj) {
 function allShipsPlacedChecker(player) {
     const fleet = player.gameboard.fleet;
     for (let shipObj in fleet) {
-        let setSize = fleet[shipObj].coordinates.size;
+        let setSize = fleet[shipObj].shipCoordinates.size;
         if (!setSize) return false;
     }
     return true;
@@ -317,9 +317,10 @@ function placeAllComputerShips() {
     }
 }
 
+// Update this - Need to know if placement is legal
 const gridHighlightHandler = (function() {
-    function getElementCoordinatesToHighlight(shipObj, bowXCoordinate, bowYCoordinate, orientation) {
-        const calculatedCoordinates = [`${bowXCoordinate}${bowYCoordinate}`];
+    function calculateCoordinatesToHighlight(shipObj, bowXCoordinate, bowYCoordinate, orientation) {
+        const coordinatesToHighlightArr = [`${bowXCoordinate}${bowYCoordinate}`];
         let nextXCoordinate = bowXCoordinate;
         let nextYCoordinate = bowYCoordinate;
     
@@ -327,30 +328,51 @@ const gridHighlightHandler = (function() {
             case 'vertical':
                 for (let i = 1; i < shipObj.shipLength; i++) {
                     nextYCoordinate++;
-                    calculatedCoordinates.push(`${bowXCoordinate}${nextYCoordinate}`);
+                    coordinatesToHighlightArr.push(`${bowXCoordinate}${nextYCoordinate}`);
                 }
                 break;
     
             case 'horizontal':
                 for (let i = 1; i < shipObj.shipLength; i++) {
                     nextXCoordinate++;
-                    calculatedCoordinates.push(`${nextXCoordinate}${bowYCoordinate}`);
+                    coordinatesToHighlightArr.push(`${nextXCoordinate}${bowYCoordinate}`);
                 }
                 break;
         }
-        return calculatedCoordinates;
+        return coordinatesToHighlightArr;
+    }
+
+    function getIllegalCoordinates() { // Will need to be able to get player2 later on.
+        let illegalCoordinatesSet = new Set();
+        const player1 = getPlayers().player1;
+        const fleet = player1.gameboard.fleet;
+        for (let shipObj in fleet) {
+            illegalCoordinatesSet = new Set([...illegalCoordinatesSet, ...fleet[shipObj].bufferCoordinates]);
+        }
+        return illegalCoordinatesSet;
     }
     
-    function toggleElementHighlight(elementCoordinates) {
-        for (let coordinate of elementCoordinates) {
+    function toggleElementHighlight(coordinatesToHighlightArr) {
+        const illegalCoordinatesSet = getIllegalCoordinates();
+
+        for (let coordinate of coordinatesToHighlightArr) {
             const gridSquare = document.querySelector(`#place-ships-dialog.player1 [id='${coordinate}'`);
-            if (gridSquare === null) continue; // Because we get can't read props of null when highlight goes out of bounds
-            gridSquare.classList.toggle('highlight');
+            if (gridSquare === null || illegalCoordinatesSet.has(coordinate)) {
+                for (let coordinate of coordinatesToHighlightArr) {
+                    if (document.querySelector(`#place-ships-dialog.player1 [id='${coordinate}'`) === null) continue;
+                    document.querySelector(`#place-ships-dialog.player1 [id='${coordinate}'`).classList.toggle('red-highlight');
+                }
+                return;
+            }
+        }
+
+        for (let coordinate of coordinatesToHighlightArr) {
+            document.querySelector(`#place-ships-dialog.player1 [id='${coordinate}'`).classList.toggle('green-highlight');
         }
     }
 
     return {
-        getElementCoordinatesToHighlight,
+        calculateCoordinatesToHighlight,
         toggleElementHighlight,
     }
 })();
@@ -362,8 +384,8 @@ function hoverHandler(e) {
     const shipObj = shipHandler.getCurrentShipObj('player1'); // Will need to be able to get either player later on
     const orientation = orientationHandler.getOrientation();
 
-    const elementCoordinatesToHighlight = gridHighlightHandler.getElementCoordinatesToHighlight(shipObj, xCoord, yCoord, orientation);
-    gridHighlightHandler.toggleElementHighlight(elementCoordinatesToHighlight);
+    const coordinatesToHighlightArr = gridHighlightHandler.calculateCoordinatesToHighlight(shipObj, xCoord, yCoord, orientation);
+    gridHighlightHandler.toggleElementHighlight(coordinatesToHighlightArr);
 }
 
 const shipHandler = (function () {
