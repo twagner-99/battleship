@@ -1,4 +1,4 @@
-import { updatePlayerName, getPlayers } from "./players.js";
+import { updatePlayerName, getPlayers, resetPlayers } from "./players.js";
 
 function getBtns() {
     const btnsArr = document.querySelectorAll('button');
@@ -22,18 +22,32 @@ function getDialogs() {
     return diaObj;
 }
 
-// Can make IIFEs 
 const dialogs = getDialogs();
 const btns = getBtns();
 
 function initialPageSetup() {
-    // Might want a function here that clears everything first for new games.
     document.querySelector('#new-game-dialog').showModal();
-    createGameboard();
+    createGameboards();
     addClickEvents();
 }
 
-function createGameboard(numGridSquares = 100) {
+function newGameSetup() {
+    resetPlayers();
+    shipHandler.resetCurrentShipIndices();
+    clearGameboards();
+    createGameboards();
+    dialogs['play-again-dialog'].close();
+    dialogs['new-player-dialog'].showModal();
+}
+
+function clearGameboards() {
+    const gameboards = document.querySelectorAll('.gameboard');
+    for (let gameboard of gameboards) {
+        removeAllChildren(gameboard);
+    }
+}
+
+function createGameboards(numGridSquares = 100) {
     const gameboards = document.querySelectorAll('.gameboard');
     
     for (let gameboard of gameboards) {
@@ -57,7 +71,8 @@ function addClickEvents() {
     btns['new-game-btn'].addEventListener('click', newGameHandler);
     btns['create-player-btn'].addEventListener('click', newPlayerHandler);
     btns['cancel-create-player-btn'].addEventListener('click', () => dialogs['new-player-dialog'].close());
-    btns['ok-btn'].addEventListener('click', computerTurnHandler);
+    btns['ok-btn'].addEventListener('click', nextStepsHandler);
+    btns['play-again-btn'].addEventListener('click', newGameSetup);
 }
 
 function newGameHandler() {
@@ -141,36 +156,41 @@ function receiveAttackHandler(e) {
     let attackingPlayer = playerHandler.getAttackingPlayerObj();
     const hitData = defensivePlayer.gameboard.receiveAttack(xCoord, yCoord);
 
-    // BUG - having issues ending game
-        // Leaving this to make sure ships not placed on top of each other.
-    if (gameOverChecker(defensivePlayer)) {
-        displayMessage(hitData, defensivePlayer, attackingPlayer);
-        // Go back to new game modal after this
+    if (gameOverChecker()) {
+        displayMessage(hitData, defensivePlayer, attackingPlayer);        
         return;
     }
 
     displayMessage(hitData, defensivePlayer, attackingPlayer);
     receiveAttackStylingHandler(hitData, coordinates, defensivePlayer.playerNum);
     playerHandler.togglePlayer();
-
-    // recommend a timer before displatching computer attack display message
 }
 
 function computerTurnHandler() {
     dialogs['ship-hit-message-dialog'].close()
     const attackingPlayer = playerHandler.getAttackingPlayerObj();
     // Could be improved to handle all lower case, too
-    if (attackingPlayer.name === 'Computer') {
-        dispatchComputerAttack();
-    }
+    if (attackingPlayer.name === 'Computer') setTimeout(dispatchComputerAttack, 925);
 }
 
-function gameOverChecker(defensivePlayer) {
-    const fleet = defensivePlayer.gameboard.fleet;
-    for (let shipObj in fleet) {
-        if (!fleet[shipObj].isSunk()) return false;
-    }
-    return true;
+function nextStepsHandler() {
+    if (gameOverChecker()) gameOverHandler();
+    else computerTurnHandler();
+}
+
+function gameOverHandler() {
+    dialogs['ship-hit-message-dialog'].close()
+    dialogs['play-again-dialog'].showModal();
+}
+
+function gameOverChecker() {
+    const player1NumShipsSunk = getPlayers().player1.gameboard.numShipsSunk;
+    const player2NumShipsSunk = getPlayers().player2.gameboard.numShipsSunk;
+    // Ok because player1 and player2 will always have the same fleet size.
+    const fleetSize = Object.keys(getPlayers().player1.gameboard.fleet).length;
+
+    if (player1NumShipsSunk === fleetSize || player2NumShipsSunk === fleetSize) return true;
+    return false;
 }
 
 function receiveAttackStylingHandler(hitData, coordinates, playerNum) {  
@@ -184,18 +204,12 @@ function displayMessage(hitData, defensivePlayer, attackingPlayer) {
     const fleet = defensivePlayer.gameboard.fleet;
     const fleetSize = Object.keys(fleet).length;
     let message;
-    let counter = 1;
 
-    if (hitData.shipHit) message = `${attackingPlayer.name} hit ${defensivePlayer.name}'s ${hitData.shipType}!`;
+    if (defensivePlayer.gameboard.numShipsSunk === fleetSize) message = `${attackingPlayer.name} sunk ${defensivePlayer.name}'s entire fleet! ${attackingPlayer.name} wins!`;
     else if (hitData.shipSunk) message = `${attackingPlayer.name} sunk ${defensivePlayer.name}'s ${hitData.shipType}!`;
+    else if (hitData.shipHit) message = `${attackingPlayer.name} hit ${defensivePlayer.name}'s ${hitData.shipType}!`;
     else message = `${attackingPlayer.name}'s attack missed!`;
 
-    for (let shipObj in fleet) {
-        if (!fleet[shipObj].isSunk()) break;
-        else if (fleet[shipObj].isSunk() && counter === fleetSize) message = `${attackingPlayer.name} sunk ${defensivePlayer.name}'s entire fleet! ${attackingPlayer.name} wins!`;
-        counter++;
-    }
-    
     const shipHitMessagePara = document.querySelector('#ship-hit-message-para');
     shipHitMessagePara.textContent = message;
     dialogs['ship-hit-message-dialog'].showModal();
@@ -315,9 +329,10 @@ function placeAllComputerShips() {
             }
         }
     }
+
+    console.log(computerFleet);
 }
 
-// Update this - Need to know if placement is legal
 const gridHighlightHandler = (function() {
     function calculateCoordinatesToHighlight(shipObj, bowXCoordinate, bowYCoordinate, orientation) {
         const coordinatesToHighlightArr = [`${bowXCoordinate}${bowYCoordinate}`];
@@ -419,19 +434,21 @@ const shipHandler = (function () {
         if (indices[player] >= numOfShips) indices[player] = 0;
     }
 
-    function resetCurrentShipIndex(player) {
-        indices[player] = 0
+    function resetCurrentShipIndices() {
+        for (let player in indices) {
+            indices[player] = 0
+        }
     }
 
     return {
         getCurrentShipObj,
         getCurrentShipName,
         updateCurrentShipIndex,
-        resetCurrentShipIndex,
+        resetCurrentShipIndices,
     }
 })();
 
-// Consider placing this in an IIFE with getRandomCoordinate for organization
+// Consider placing this in orientationHandler IIFE
 function getRandomOrientation() {
     const orientationArr = ['vertical', 'horizontal'];
     const randomIndex = Math.floor(Math.random() * orientationArr.length);
@@ -454,7 +471,6 @@ const orientationHandler = (function() {
         orientation = orientationArr[counter];
     }
 
-    // might want to move this to add clickEvents function
     orientationBtn.addEventListener('click', toggleOrientation);
 
     return {
@@ -469,7 +485,7 @@ function removeAllChildren(parent) {
 
 export { initialPageSetup };
 
-// Need to fix - 
-    // Need to make sure player and computer can't place ships on top of each other
-        // Even further, make sure they have at least one grid between
-    // Need to add end game and ability to start new game once fleet is sunk - WORKING ON THIS. HAVING PROBLEMS
+// Future updates
+    // Have player1 and player2 be able to be human
+    // Randomize which player starts first
+    // Make computer smarter

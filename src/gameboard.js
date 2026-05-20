@@ -5,9 +5,9 @@ class Gameboard {
         this.hitTracker = new Set();
         this.numShipsSunk = 0;
         this.fleet = {
-            'carrier': new Ship(5),
-            'battleship': new Ship(4),
-            'destroyer': new Ship(3),
+            // 'carrier': new Ship(5),
+            // 'battleship': new Ship(4),
+            // 'destroyer': new Ship(3),
             'submarine': new Ship(3),
             'patrolBoat': new Ship(2),
         }

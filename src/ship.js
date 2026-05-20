@@ -1,8 +1,7 @@
 class Ship {
-    constructor(shipLength, hitCount = 0, sunkStatus = false) {
+    constructor(shipLength, hitCount = 0) {
         this.shipLength = shipLength;
         this.hitCount = hitCount;
-        this.sunkStatus = sunkStatus;   // Can probably get rid of this...
         this.shipCoordinates = new Set();
         this.bufferCoordinates = new Set();
     }
@@ -13,7 +12,6 @@ class Ship {
 
     isSunk() {
         if (this.hitCount === this.shipLength) {
-            this.sunkStatus = true;
             return true;
         }
         return false;

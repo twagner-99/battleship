@@ -22,4 +22,9 @@ function updatePlayerName(player, name) {
     players[player].name = name;
 }
 
-export { getPlayers, updatePlayerName };
+function resetPlayers() {
+    players.player1 = new Player('player1', 'player1', true);
+    players.player2 = new Player('player2', 'player2', false);
+}
+
+export { getPlayers, updatePlayerName, resetPlayers };
