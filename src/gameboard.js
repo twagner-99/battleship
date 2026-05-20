@@ -5,26 +5,15 @@ class Gameboard {
         this.hitTracker = new Set();
         this.numShipsSunk = 0;
         this.fleet = {
-            // 'carrier': new Ship(5),
-            // 'battleship': new Ship(4),
-            // 'destroyer': new Ship(3),
+            'carrier': new Ship(5),
+            'battleship': new Ship(4),
+            'destroyer': new Ship(3),
             'submarine': new Ship(3),
             'patrolBoat': new Ship(2),
         }
     }
 
     #legalPlacementChecker(placeShipCoordinatesArr, fleetParam = this.fleet) {
-        // // No shipCoordinates of ship being placed allowed to be out of range
-        // for (let coordinate of placeShipCoordinatesArr){
-        //     const xCoord = Number(coordinate[0]);
-        //     const yCoord = Number(coordinate[1]);
-
-        //     // MOVE THIS BACK TO PLACESHIP
-        //     if (xCoord > 9 || yCoord > 9 || xCoord < 0 || yCoord < 0) {
-        //         throw new Error('Coordinates are outside gameboard range.');
-        //     }
-        // }
-
         // No shipCoordinates of ship being placed allowed to overlap with already placed ships
         for (let ship in fleetParam) {
             for (let coordinate of placeShipCoordinatesArr) {
@@ -77,7 +66,6 @@ class Gameboard {
         return bufferCoordinatesArr;
 
         // works for any orientation
-
             // x + 1, y + 0 //
             // x + 0, y + 1 //
             // x - 1, y + 0 //
